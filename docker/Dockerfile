@@ -47,6 +47,15 @@ RUN npm run build
 # shipping node_modules or a second install. ~360kB.
 RUN npx --yes esbuild scripts/migrate-runtime.ts       --bundle --platform=node --target=node24 --format=cjs       --outfile=migrate.cjs
 
+# Same idea as migrate.cjs above: a self-contained runner for the one-time
+# Revacity content seed (migration/seed-revacity-pages.ts), bundled so it can
+# run against the private-network database without shipping devDependencies
+# or the full source tree. Not run automatically -- invoke manually via a
+# temporary Custom Start Command (`node seed.cjs && node server.js`) the first
+# time a fresh database needs the Revacity pages/posts. Idempotent: safe to
+# leave in the image and re-run.
+RUN npx --yes esbuild migration/seed-revacity-pages.ts       --bundle --platform=node --target=node24 --format=cjs       --outfile=seed.cjs
+
 FROM node:24-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
@@ -62,6 +71,8 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/lib/db/migrations ./lib/db/migrations
 # Read by migrate.cjs, which resolves ./lib/db/migrations relative to WORKDIR.
 COPY --from=builder /app/migrate.cjs ./migrate.cjs
+COPY --from=builder /app/seed.cjs ./seed.cjs
+COPY --from=builder /app/public/uploads/revacity ./public/uploads/revacity
 
 RUN mkdir -p public/uploads && chown -R nextjs:nodejs public/uploads
 
