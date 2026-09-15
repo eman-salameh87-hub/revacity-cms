@@ -33,7 +33,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
    * here is what made the new-aeon.com home page render a placeholder banner
    * above its own video.
    */
-  const leadsWithHero = isHeroBlock(blocks[0]?.type ?? '');
+  const leadsWithHero = isHeroBlock(blocks[0] ?? { type: '' });
 
   return (
     <div>
@@ -45,12 +45,19 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         />
       )}
 
-      {blocks.length > 0 && (
-        // No top padding when the slider leads: a hero has to sit flush under
-        // the navbar, and py-16 would leave a band of white above it.
-        <section className={leadsWithHero ? 'pb-16 px-4 max-w-4xl mx-auto' : 'py-16 px-4 max-w-4xl mx-auto'}>
-          <ContentRenderer blocks={blocks} locale={typedLocale} />
-        </section>
+      {leadsWithHero ? (
+        // Unwrapped, matching the [segment] route's identical carve-out for
+        // a hero-first page (see HERO_CUSTOM_COMPONENTS): a vendored,
+        // full-page embed already IS the page, so the usual
+        // `max-w-4xl mx-auto` prose container and its padding would just
+        // leave an unwanted gap below it rather than doing anything useful.
+        <ContentRenderer blocks={blocks} locale={typedLocale} />
+      ) : (
+        blocks.length > 0 && (
+          <section className="py-16 px-4 max-w-4xl mx-auto">
+            <ContentRenderer blocks={blocks} locale={typedLocale} />
+          </section>
+        )
       )}
     </div>
   );

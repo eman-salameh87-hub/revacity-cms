@@ -25,6 +25,7 @@ import {
   ApplicationFormBlock,
 } from '@/components/site/blocks/legacy-blocks';
 import { resolveCustomBlock } from '@/lib/blocks/custom-registry';
+import { FULL_BLEED } from '@/lib/blocks/layout';
 import type { ContentBlock } from '@/lib/blocks/types';
 
 const tiptapExtensions = [StarterKit, TiptapImage, TiptapLink];
@@ -65,7 +66,11 @@ const HEADING_SIZE = {
   4: 'text-lg',
 } as const;
 
-function BlockRenderer({
+/**
+ * Every block type's own markup, with no knowledge of the per-section
+ * background/video styling BlockRenderer applies around it.
+ */
+function BlockContent({
   block,
   locale,
   pageSlug,
@@ -488,4 +493,54 @@ function BlockRenderer({
       }
       return null;
   }
+}
+
+
+/**
+ * Every block, styled with the section-level background colour and/or
+ * background video an editor set on it (see BlockStyle in lib/blocks/types.ts).
+ *
+ * A block that sets neither renders exactly as before — no extra element, no
+ * changed DOM — so this wrapper is invisible to existing content and to any
+ * test asserting on a specific block's markup.
+ */
+function BlockRenderer(props: { block: ContentBlock; locale: 'ar' | 'en'; pageSlug?: string }) {
+  const { block } = props;
+  const { background, backgroundVideo } = block;
+
+  if (!background && !backgroundVideo) {
+    return <BlockContent {...props} />;
+  }
+
+  return (
+    <section
+      className={cn(FULL_BLEED, 'relative overflow-hidden py-12 sm:py-16')}
+      style={background ? { backgroundColor: background } : undefined}
+      data-test-id="block-style-wrapper"
+    >
+      {backgroundVideo && (
+        // Muted/looped/no controls: a background, not a video the visitor
+        // is meant to operate. See lib/blocks/types.ts's video-hero for why
+        // that block gets its own (accessible, postered) treatment instead
+        // of reusing this one — this is a decorative band behind any block.
+        <video
+          className="absolute inset-0 h-full w-full object-cover"
+          src={backgroundVideo}
+          autoPlay
+          muted
+          loop
+          playsInline
+          aria-hidden="true"
+        />
+      )}
+      {backgroundVideo && (
+        // Scrim so text set over a video stays readable regardless of the
+        // footage's own brightness — same idea as the `cta` block's overlay.
+        <div className="absolute inset-0 bg-site-surface-inverted/50" aria-hidden="true" />
+      )}
+      <div className={cn('relative', backgroundVideo && 'text-site-ink-inverted')}>
+        <BlockContent {...props} />
+      </div>
+    </section>
+  );
 }

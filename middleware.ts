@@ -73,6 +73,16 @@ function buildCsp(nonce: string, isDev: boolean): string {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // The vendored revacity-home engine (public/legacy/revacity-home/) is a
+  // static, sandboxed embed — it only ever runs inside the homepage's <iframe>,
+  // never in the app's own document — and it loads GSAP/Three.js from CDNs
+  // with plain, non-nonced <script src> tags, exactly like the static site it
+  // was vendored from. The app's nonce-based CSP has no way to reach a static
+  // file's tags with a per-request nonce, so it would just block those scripts
+  // outright. Skipping CSP for this one path prefix only relaxes it for inert
+  // vendored assets, not for anything else the app serves.
+  if (pathname.startsWith('/legacy/')) return NextResponse.next();
+
   const nonce = crypto.randomUUID().replace(/-/g, '');
   const csp = buildCsp(nonce, process.env.NODE_ENV === 'development');
 

@@ -52,7 +52,7 @@ export function Navbar({
     /^https?:\/\//i.test(url) ? url : `/${locale}${url.startsWith('/') ? url : `/${url}`}`;
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-site-line bg-site-surface/80 backdrop-blur-md">
+    <nav id="site-navbar" className="sticky top-0 z-50 border-b border-site-line bg-site-surface/80 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-4">
           <Link

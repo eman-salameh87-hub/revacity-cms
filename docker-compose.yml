@@ -1,29 +1,30 @@
 services:
   db:
     image: postgres:15-alpine
-    container_name: new-aeon-db
+    container_name: revacity-cms-db
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: new_aeon_cms
+      POSTGRES_DB: revacity_cms
     ports:
-      # Host 5432 is taken by a native PostgreSQL 16 service on this machine,
-      # and 5433 by another project's container, so this one is published on
-      # 5435 to clear both. DATABASE_URL in .env must name the same port.
-      - "5435:5432"
+      # 5432 is a native PostgreSQL service on this machine, 5433/5435 are
+      # taken by other projects' containers, so this one (revacity-cms's own
+      # database) is published on 5436. DATABASE_URL in .env must match.
+      - "5436:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - revacity_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d new_aeon_cms"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d revacity_cms"]
       interval: 5s
       timeout: 5s
       retries: 10
 
   redis:
     image: redis:7-alpine
-    container_name: new-aeon-redis
+    container_name: revacity-cms-redis
     ports:
-      - "6379:6379"
+      # 6379 is used by other projects' containers on this machine.
+      - "6380:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -31,4 +32,4 @@ services:
       retries: 5
 
 volumes:
-  postgres_data:
+  revacity_postgres_data:

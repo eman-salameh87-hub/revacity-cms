@@ -6,7 +6,7 @@
 // full document load, which is fine — they are separate applications.)
 import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
-import { Bitter, Cairo, Inter, Lato } from 'next/font/google';
+import { Cairo, Inter, Plus_Jakarta_Sans } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, setRequestLocale } from 'next-intl/server';
 import { headers } from 'next/headers';
@@ -27,26 +27,25 @@ import { WhatsAppButton } from '@/components/site/whatsapp-button';
 import '../../globals.css';
 
 /*
- * The typefaces new-aeon.com has always used.
+ * Revacity's typefaces.
  *
- * Bitter for headings and Lato for Latin body copy are what the legacy site
- * loaded from Google Fonts; Cairo carries Arabic, which neither of the other
- * two covers. Keeping all four means the rebuilt site reads as the same site
- * rather than as a redesign — the brief was the existing look and feel.
+ * Plus Jakarta Sans for headings and Inter for Latin body copy are what
+ * revacity-pages (the static reference site this CMS reproduces) loads from
+ * Google Fonts; Cairo carries Arabic, which neither of the other two covers.
  *
- * Weights are pinned rather than left to the default. `next/font` fetches every
- * available weight when none is named, which for Bitter is nine files nobody
- * uses; the legacy CSS only ever asked for bold headings and light body text.
+ * Weights are pinned rather than left to the default: `next/font` fetches
+ * every available weight when none is named, and the reference site only ever
+ * asks for a handful.
  */
-const bitter = Bitter({
+const displayFont = Plus_Jakarta_Sans({
   subsets: ['latin'],
-  weight: ['400', '700'],
+  weight: ['500', '600', '700', '800'],
   variable: '--font-display',
   display: 'swap',
 });
-const lato = Lato({
+const bodyFont = Inter({
   subsets: ['latin'],
-  weight: ['300', '400', '700'],
+  weight: ['300', '400', '500', '600', '700'],
   variable: '--font-body',
   display: 'swap',
 });
@@ -93,6 +92,15 @@ export async function generateMetadata({
      * name on its own.
      */
     title: { default: siteName, template: `%s · ${siteName}` },
+    /**
+     * The admin's Settings > Favicon URL field was saved to the database but
+     * never actually reached a <link rel="icon"> tag — buildMetadata() has no
+     * concept of icons, and nothing else set one either, so the browser fell
+     * back to no favicon at all (or Next's default) regardless of what was
+     * uploaded. Since no page below this layout sets its own `icons`, this is
+     * inherited by every route in the site.
+     */
+    icons: settings?.favicon ? { icon: settings.favicon } : undefined,
   };
 }
 
@@ -194,7 +202,7 @@ export default async function SiteLayout({
       lang={typedLocale}
       dir={dir}
       data-theme={themeAttr}
-      className={`${bitter.variable} ${lato.variable} ${cairo.variable} ${inter.variable} h-full`}
+      className={`${displayFont.variable} ${bodyFont.variable} ${cairo.variable} ${inter.variable} h-full`}
     >
       <body className="site-body min-h-full antialiased">
         {/* GTM requires its noscript iframe first inside <body>. */}

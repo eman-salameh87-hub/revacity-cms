@@ -1,8 +1,8 @@
 // lib/blocks/defaults.ts
-import type { ContentBlock } from './types';
+import type { ContentBlock, ContentBlockVariant, BlockStyle } from './types';
 import type { MessageKey } from '@/lib/admin-i18n/messages';
 
-export type BlockType = ContentBlock['type'];
+export type BlockType = ContentBlockVariant['type'];
 
 /**
  * Message keys for the block picker labels, resolved through the admin
@@ -84,7 +84,11 @@ export const EDITABLE_BLOCKS: ReadonlySet<BlockType> = new Set<BlockType>([
  * `return { type: type as any, text: '' }`, which produced structurally invalid
  * blocks for ~20 of the types — e.g. an `image` with no src/alt/layout.
  */
-const FACTORIES: { [K in BlockType]: () => Extract<ContentBlock, { type: K }> } = {
+// Extract from ContentBlockVariant (the plain union), not ContentBlock (that
+// union intersected with BlockStyle) — Extract only distributes member-by-
+// member over a genuine union type, and re-intersecting BlockStyle after is
+// what makes the result assignable back to ContentBlock.
+const FACTORIES: { [K in BlockType]: () => Extract<ContentBlockVariant, { type: K }> & BlockStyle } = {
   'rich-text': () => ({
     type: 'rich-text',
     content: { type: 'doc', content: [{ type: 'paragraph' }] },

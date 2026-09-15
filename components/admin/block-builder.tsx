@@ -15,6 +15,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
 import { RichTextBlockEditor } from './rich-text-block-editor';
 import { BlockEditor } from './block-editors';
+import { MediaField } from './media-field';
 import {
   ALL_BLOCK_TYPES, BLOCK_LABEL_KEYS, EDITABLE_BLOCKS, createDefaultBlock,
   type BlockType,
@@ -410,6 +411,16 @@ function BlockItem({
           ) : (
             <BlockEditor block={block} onChange={onUpdate} />
           )}
+
+          {/* Every block type, regardless of its own fields: an editor can
+             give any section its own background colour and/or background
+             video without that being a per-type field. See BlockStyle in
+             lib/blocks/types.ts and BlockRenderer in content-renderer.tsx. */}
+          <BlockStyleFields
+            block={block}
+            onChange={onUpdate}
+            testScope={`${testScope}-${index}`}
+          />
         </div>
       )}
     </li>
@@ -510,6 +521,80 @@ function NestedBlocksEditor<K extends 'title' | 'label'>({
         <Plus size={14} aria-hidden="true" />
         {addLabel}
       </button>
+    </div>
+  );
+}
+
+
+/**
+ * Background colour + background video, offered on every block regardless of
+ * type. See BlockStyle in lib/blocks/types.ts for why these live on the union
+ * itself rather than being redeclared per variant, and BlockRenderer in
+ * content-renderer.tsx for how they render.
+ */
+function BlockStyleFields({
+  block,
+  onChange,
+  testScope,
+}: {
+  block: ContentBlock;
+  onChange: (block: ContentBlock) => void;
+  testScope: string;
+}) {
+  const t = useT();
+  const swatch = /^#[0-9a-f]{6}$/i.test(block.background ?? '') ? (block.background as string) : '#000000';
+
+  return (
+    <div className="mt-4 space-y-3 rounded-md border border-dashed border-[var(--admin-line)] p-3">
+      <p className="text-xs font-medium text-[var(--admin-text-secondary)]">{t('blocks.style')}</p>
+
+      <div>
+        <label
+          htmlFor={`${testScope}-bg-color`}
+          className="mb-1 block text-xs text-[var(--admin-text-muted)]"
+        >
+          {t('blocks.backgroundColor')}
+        </label>
+        <div className="flex items-center gap-2">
+          <input
+            type="color"
+            id={`${testScope}-bg-color`}
+            value={swatch}
+            onChange={(e) => onChange({ ...block, background: e.target.value })}
+            className="h-9 w-9 shrink-0 cursor-pointer rounded border border-[var(--admin-line)] bg-transparent p-0.5"
+            data-test-id={`${testScope}-bg-color-swatch`}
+          />
+          <input
+            type="text"
+            dir="ltr"
+            className="admin-input flex-1 text-sm"
+            placeholder="#0a0315"
+            value={block.background ?? ''}
+            onChange={(e) => onChange({ ...block, background: e.target.value || undefined })}
+            data-test-id={`${testScope}-bg-color-text`}
+          />
+          {block.background && (
+            <button
+              type="button"
+              onClick={() => onChange({ ...block, background: undefined })}
+              className="admin-btn-ghost shrink-0 px-2 py-1.5 text-xs"
+              data-test-id={`${testScope}-bg-color-clear`}
+            >
+              {t('blocks.backgroundClear')}
+            </button>
+          )}
+        </div>
+        <p className="mt-1 text-xs text-[var(--admin-text-muted)]">{t('blocks.backgroundColorHint')}</p>
+      </div>
+
+      <MediaField
+        label={t('blocks.backgroundVideo')}
+        hint={t('blocks.backgroundVideoHint')}
+        value={block.backgroundVideo ?? ''}
+        onChange={(backgroundVideo) => onChange({ ...block, backgroundVideo: backgroundVideo || undefined })}
+        testId={`${testScope}-bg-video`}
+        preview={false}
+      />
     </div>
   );
 }

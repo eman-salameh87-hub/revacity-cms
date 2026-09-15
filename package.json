@@ -27,7 +27,8 @@
     "test:e2e:ui": "playwright test --ui",
     "test:unit": "vitest run",
     "migrate:legacy": "tsx --env-file=.env migration/import-legacy.ts",
-    "migrate:site": "tsx --env-file=.env migration/seed-site.ts"
+    "migrate:site": "tsx --env-file=.env migration/seed-site.ts",
+    "migrate:revacity": "tsx --env-file=.env migration/seed-revacity-pages.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1121.0",

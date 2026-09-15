@@ -12,6 +12,7 @@ import {
   ApplicationFormEditor,
 } from './blocks/legacy-editors';
 import { BLOCK_LABEL_KEYS, isSafeUrl } from '@/lib/blocks/defaults';
+import { socialPlatforms } from '@/lib/settings-schema';
 import { sliderLimits } from '@/lib/blocks/slider';
 import { youTubeId } from '@/lib/blocks/youtube';
 import { MAX_IMAGE_BYTES, MAX_VIDEO_BYTES, formatBytes } from '@/lib/media/limits';
@@ -135,6 +136,16 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
               {t('be.altHint')}
             </p>
           </Field>
+          <Field label={t('be.caption')} htmlFor="image-caption">
+            <input
+              id="image-caption"
+              type="text"
+              className="admin-input"
+              value={block.caption ?? ''}
+              onChange={(e) => onChange({ ...block, caption: e.target.value || undefined })}
+              data-test-id="image-caption"
+            />
+          </Field>
           <Field label={t('be.width')} htmlFor="image-layout">
             <select
               id="image-layout"
@@ -172,6 +183,16 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
               className="admin-input"
               value={block.author ?? ''}
               onChange={(e) => onChange({ ...block, author: e.target.value || undefined })}
+            />
+          </Field>
+          <Field label={t('be.source')} htmlFor="quote-source">
+            <input
+              id="quote-source"
+              type="text"
+              className="admin-input"
+              value={block.source ?? ''}
+              onChange={(e) => onChange({ ...block, source: e.target.value || undefined })}
+              data-test-id="quote-source"
             />
           </Field>
           <Field label={t('be.style')} htmlFor="quote-style">
@@ -240,6 +261,15 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
               </select>
             </Field>
           </div>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={block.fullWidth ?? false}
+              onChange={(e) => onChange({ ...block, fullWidth: e.target.checked })}
+              data-test-id="button-full-width"
+            />
+            {t('be.fullWidth')}
+          </label>
         </div>
       );
 
@@ -700,6 +730,17 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
             onChange={(url) => onChange({ ...block, url })} testId="video-url" />
           <MediaField label={t('be.poster')} value={block.poster ?? ''}
             onChange={(v) => onChange({ ...block, poster: v || undefined })} testId="video-poster" />
+          <Field label={t('be.videoAutoplay')}>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={block.autoplay ?? false}
+                onChange={(e) => onChange({ ...block, autoplay: e.target.checked })}
+                data-test-id="video-autoplay"
+              />
+              <span className="text-[var(--admin-text-secondary)]">{t('be.videoAutoplayHint')}</span>
+            </label>
+          </Field>
         </div>
       );
 
@@ -735,6 +776,24 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
               <MiniField label={t('be.bio')} value={m.bio ?? ''} onChange={(v) => update({ bio: v || undefined })} />
               <MiniField label={t('be.photo')} ltr value={m.photo ?? ''}
                 onChange={(v) => update({ photo: v || undefined })} />
+              <fieldset className="space-y-2">
+                <legend className="mb-1 text-xs text-[var(--admin-text-secondary)]">
+                  {t('be.memberSocial')}
+                </legend>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {socialPlatforms.map((p) => (
+                    <MiniField
+                      key={p}
+                      label={p.charAt(0).toUpperCase() + p.slice(1)}
+                      ltr
+                      value={m.social?.[p] ?? ''}
+                      onChange={(v) =>
+                        update({ social: { ...(m.social ?? {}), [p]: v } })
+                      }
+                    />
+                  ))}
+                </div>
+              </fieldset>
             </div>
           )}
         />
@@ -834,6 +893,8 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
             onChange={(v) => onChange({ ...block, description: v || undefined })} />
           <MiniField label={t('be.buttonText')} value={block.buttonText ?? ''}
             onChange={(v) => onChange({ ...block, buttonText: v || undefined })} />
+          <MiniField label={t('be.privacyNote')} value={block.privacyNote ?? ''}
+            onChange={(v) => onChange({ ...block, privacyNote: v || undefined })} />
         </div>
       );
 
@@ -849,6 +910,8 @@ export function BlockEditor({ block, onChange }: BlockEditorProps) {
           />
           <MiniField label={t('be.submitLabel')} value={block.submitLabel ?? ''}
             onChange={(v) => onChange({ ...block, submitLabel: v || undefined })} />
+          <MiniField label={t('be.successMessage')} value={block.successMessage ?? ''}
+            onChange={(v) => onChange({ ...block, successMessage: v || undefined })} />
         </div>
       );
 

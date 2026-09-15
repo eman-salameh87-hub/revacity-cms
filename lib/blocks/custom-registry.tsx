@@ -1,5 +1,7 @@
 // lib/blocks/custom-registry.tsx
 import type { ComponentType } from 'react';
+import { RevacityHomeEngine } from '@/components/site/custom/revacity-home-engine';
+import { RevacityAboutEngine } from '@/components/site/custom/revacity-about-engine';
 
 /**
  * Extension point for the `custom` block.
@@ -33,3 +35,10 @@ export function registeredCustomBlocks(): string[] {
 //
 // Nothing is registered by default, so a `custom` block renders nothing until a
 // developer opts a component in.
+
+registerCustomBlock('revacity-home-engine', RevacityHomeEngine);
+registerCustomBlock('revacity-about-engine', RevacityAboutEngine);
+
+// Generic alias: same component, reused (unmodified) for every other
+// vendored legacy page below — it only ever reads props.src.
+registerCustomBlock('legacy-page-embed', RevacityAboutEngine);

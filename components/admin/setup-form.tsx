@@ -31,7 +31,7 @@ export function SetupForm({ adminPath }: { adminPath: string }) {
     email: '',
     password: '',
     siteName: '',
-    defaultLocale: 'ar' as 'ar' | 'en',
+    defaultLocale: 'en' as 'ar' | 'en',
     countryCode: DEFAULT_SETUP_COUNTRY,
     currency: currencyFor(DEFAULT_SETUP_COUNTRY),
     commerce: true,

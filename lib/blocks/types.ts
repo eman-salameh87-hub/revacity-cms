@@ -31,7 +31,26 @@ export interface TestimonialBlock {
   columns?: 1 | 2 | 3;
 }
 
-export type ContentBlock =
+/**
+ * Style fields every block carries, regardless of type.
+ *
+ * Intersected onto the type union below rather than added to each of its ~35
+ * variants: `(A | B | C) & BlockStyle` distributes over the union, so
+ * `block.type` narrowing still works everywhere, and a new block type gets
+ * these fields for free instead of one more place to remember them.
+ *
+ * Both are optional and both default to unset, which renders as "use the
+ * site theme" (see BlockStyleWrapper in content-renderer.tsx) — an editor who
+ * never opens "Section style" gets exactly the previous behaviour.
+ */
+export interface BlockStyle {
+  /** Six-digit hex, e.g. `#0a0315`. Overrides the theme's page background for this section only. */
+  background?: string;
+  /** Uploaded mp4/webm URL. Renders muted, looped and behind the section's own content. */
+  backgroundVideo?: string;
+}
+
+export type ContentBlockVariant =
   | { type: 'heading'; level: 1 | 2 | 3 | 4; text: string; anchor?: string }
   | { type: 'paragraph'; text: string; align?: 'left' | 'center' | 'right' | 'justify' }
   | { type: 'image'; src: string; alt: string; caption?: string; width?: number; height?: number; layout: 'full' | 'wide' | 'normal' }
@@ -269,6 +288,9 @@ export type ContentBlock =
       attachmentRequired?: boolean;
     }
   | { type: 'custom'; component: string; props: Record<string, unknown> };
+
+/** The union above, plus the style fields every block carries. See BlockStyle. */
+export type ContentBlock = ContentBlockVariant & BlockStyle;
 
 /** Narrowing helper so BlockRenderer stays free of `any` casts. */
 export function isTestimonialBlock(block: ContentBlock): block is TestimonialBlock {

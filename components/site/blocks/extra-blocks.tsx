@@ -24,11 +24,17 @@ function embedSrc(block: Pick_<'video'>): string | null {
       // Shared with the slider. The old inline version took the last path
       // segment, so a channel URL produced an embed of the channel name.
       const id = youTubeId(block.url);
-      return id ? youTubeEmbedUrl(id, { controls: true }) : null;
+      // Browsers block unmuted autoplay, so a video the editor asked to
+      // autoplay must also be muted or it silently never starts.
+      return id
+        ? youTubeEmbedUrl(id, { controls: true, autoplay: block.autoplay, muted: block.autoplay })
+        : null;
     }
     if (block.provider === 'vimeo') {
       const id = url.pathname.split('/').filter(Boolean).pop();
-      return id ? `https://player.vimeo.com/video/${encodeURIComponent(id)}` : null;
+      if (!id) return null;
+      const params = block.autoplay ? '?autoplay=1&muted=1' : '';
+      return `https://player.vimeo.com/video/${encodeURIComponent(id)}${params}`;
     }
     return null;
   } catch {
@@ -39,7 +45,17 @@ function embedSrc(block: Pick_<'video'>): string | null {
 export function VideoBlock({ block }: { block: Pick_<'video'> }) {
   if (block.provider === 'self') {
     return (
-      <video controls poster={block.poster} className="w-full rounded-lg" preload="metadata">
+      <video
+        controls
+        poster={block.poster}
+        className="w-full rounded-lg"
+        preload="metadata"
+        autoPlay={block.autoplay}
+        // Browsers block unmuted autoplay; muting is the only way the
+        // admin's "autoplay" checkbox can actually take effect.
+        muted={block.autoplay}
+        playsInline={block.autoplay}
+      >
         <source src={block.url} />
       </video>
     );
@@ -105,6 +121,25 @@ export function TeamBlock({ block }: { block: Pick_<'team'> }) {
           <h3 className="mt-4 font-semibold text-site-ink">{m.name}</h3>
           <p className="text-sm text-site-ink-muted">{m.role}</p>
           {m.bio && <p className="mt-2 text-sm text-site-ink-muted">{m.bio}</p>}
+          {m.social && Object.values(m.social).some((v) => v?.trim()) && (
+            <ul className="mt-3 flex flex-wrap items-center justify-center gap-2">
+              {Object.entries(m.social)
+                .filter(([, v]) => v?.trim())
+                .map(([platform, handle]) => (
+                  <li key={platform}>
+                    <a
+                      href={socialHref(platform, handle)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={platform}
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-site-surface-raised text-xs capitalize hover:bg-site-line"
+                    >
+                      {platform.slice(0, 2)}
+                    </a>
+                  </li>
+                ))}
+            </ul>
+          )}
         </div>
       ))}
     </div>

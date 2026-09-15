@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { getContentBySlug } from '@/lib/db/queries';
 import { ContentRenderer } from '@/components/site/content-renderer';
 import { asContentBlocks } from '@/lib/blocks/content-schema';
+import { isHeroBlock } from '@/lib/blocks/layout';
 import { buildMetadata } from '@/lib/seo/metadata';
 import { getSettings } from '@/lib/db/queries';
 import { locales, type Locale } from '@/lib/env';
@@ -67,6 +68,20 @@ export default async function ContentPage({ params }: Params) {
   if (!loaded) return <TypeArchive locale={locale} prefix={segment} />;
 
   const { i18n } = loaded.record;
+  const blocks = asContentBlocks(i18n?.body);
+
+  /**
+   * A vendored, full-page embed (see HERO_CUSTOM_COMPONENTS) IS the page —
+   * it already carries its own title, hero and chrome inside the iframe.
+   * Wrapping it in this template's usual title/excerpt header and
+   * `max-w-4xl px-4 py-16` article shell would both duplicate that title and
+   * cage the embed inside prose measure, so it's skipped for exactly the
+   * same reason the home page skips its generic HeroSection when the first
+   * block already is one.
+   */
+  if (isHeroBlock(blocks[0] ?? { type: '' })) {
+    return <ContentRenderer blocks={blocks} locale={loaded.locale} pageSlug={segment} />;
+  }
 
   return (
     <article className="mx-auto max-w-4xl px-4 py-16">
@@ -76,7 +91,7 @@ export default async function ContentPage({ params }: Params) {
       </header>
 
       <ContentRenderer
-        blocks={asContentBlocks(i18n?.body)}
+        blocks={blocks}
         locale={loaded.locale}
         pageSlug={segment}
       />

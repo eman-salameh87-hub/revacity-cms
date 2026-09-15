@@ -12,8 +12,16 @@ dist/
 .env.local
 .env.*.local
 
-# Local uploads — user content, not source
-public/uploads/
+# Local uploads — user content, not source.
+# `*` rather than a bare trailing slash: a bare `public/uploads/` ignores the
+# directory itself, and git never descends into an ignored directory to
+# apply the negation below — the exception would silently do nothing.
+public/uploads/*
+# Exception: Revacity's own brand assets (logo, hero videos, page images),
+# checked in like any other source asset because migration/seed-revacity-
+# pages.ts references these exact paths — losing them on a fresh clone would
+# leave every seeded page missing its media.
+!public/uploads/revacity/
 
 # Rendered mail from the log driver — holds real customer names and addresses
 .mail-outbox/

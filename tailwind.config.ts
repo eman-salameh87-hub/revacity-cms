@@ -64,7 +64,7 @@ const config: Config = {
          * render in whatever the system picked — which is how a bilingual site
          * ends up with two different-looking languages.
          */
-        display: ['var(--font-display)', 'var(--font-cairo)', 'Georgia', 'serif'],
+        display: ['var(--font-display)', 'var(--font-cairo)', 'system-ui', 'sans-serif'],
         body: ['var(--font-body)', 'var(--font-cairo)', 'system-ui', 'sans-serif'],
       },
       spacing: { sidebar: '16rem', header: '4rem' },

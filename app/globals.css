@@ -426,3 +426,17 @@
     }
   }
 }
+
+/*
+ * Vendored legacy pages (see components/site/custom/revacity-about-engine.tsx
+ * and the `legacy-page-embed` custom block) bring their own full header and
+ * footer inside their <iframe> — the original static page's real nav, not a
+ * re-implementation. Showing the CMS's own Navbar/Footer above and below
+ * that iframe would duplicate chrome, so the embed component sets this
+ * attribute on <body> for as long as it's mounted, and this rule hides the
+ * CMS's copy in favour of the vendored page's own.
+ */
+body[data-legacy-chrome="hidden"] #site-navbar,
+body[data-legacy-chrome="hidden"] #site-footer {
+  display: none;
+}

@@ -36,6 +36,9 @@ export async function generateMetadata(): Promise<Metadata> {
       : t('brand.panelTitle'),
     // The admin panel must never be indexed.
     robots: { index: false, follow: false },
+    // Same Settings > Favicon URL the storefront uses, so the tab icon is
+    // consistent instead of the browser's default globe.
+    icons: settings?.favicon ? { icon: settings.favicon } : undefined,
   };
 }
 

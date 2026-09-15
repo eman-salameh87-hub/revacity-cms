@@ -1,0 +1,2401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+// Reads admin-edited text overrides passed via this iframe's own query
+// string (see components/site/custom/revacity-about-engine.tsx) into
+// window.__cmsOverrides. Nothing else about this document — layout, canvas,
+// scroll — is touched; only elements marked data-cms-slot below ever get
+// their text swapped, and only when an override is actually set.
+window.__cmsOverrides = (function () {
+  try {
+    var raw = new URLSearchParams(location.search).get('cms');
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+})();
+</script>
+<meta charset="UTF-8">
+<!-- Set the background before anything else so there's no white flash while any render-blocking scripts/fonts below are downloading — without this, the browser can paint its default white background before the page's own <style> block (further down) ever applies. -->
+<style>html{background:#000000}</style>
+<!-- If arriving via the cosmic page transition, hide real content synchronously (before body even parses) so page-transition.js can reveal it in layered order once it boots, instead of it popping in all at once first. See page-transition.css's html.pt-incoming rule. -->
+<script>try{if(sessionStorage.getItem('pt-transitioning')==='1')document.documentElement.classList.add('pt-incoming');}catch(e){}</script>
+<link rel="stylesheet" href="page-transition.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>REVacity | About</title>
+<link rel="icon" type="image/png" href="media/icon.png">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollToPlugin.min.js"></script>
+<script src="page-transition.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght=0,300;0,400;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="style.css" rel="stylesheet">
+<style>
+body.page-about {
+  background: #030208;
+}
+html, body {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+html::-webkit-scrollbar, body::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+body.page-about .mobile-slide-menu {
+  background: #030208;
+}
+body.page-about #bg-canvas {
+  background-color: transparent;
+}
+body.page-about .main-header::after {
+  content: '';
+  position: absolute; left: 0; right: 0; bottom: -1px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(216,127,255,0.95), rgba(244,161,53,0.5), transparent);
+  background-size: 60% 100%;
+  background-repeat: no-repeat;
+  animation: aboutHeaderSweep 7s ease-in-out infinite;
+  pointer-events: none;
+  opacity: 0.8;
+}
+@keyframes aboutHeaderSweep {
+  0%   { background-position: -60% 0; }
+  50%  { background-position: 130% 0; }
+  100% { background-position: -60% 0; }
+}
+body.page-about .main-header .logo img {
+  animation: aboutLogoGlowPulse 4.5s ease-in-out infinite;
+}
+@keyframes aboutLogoGlowPulse {
+  0%, 100% { filter: drop-shadow(0 0 14px rgba(168,85,247,0.4)); }
+  50%      { filter: drop-shadow(0 0 26px rgba(216,127,255,0.8)); }
+}
+body.page-about .nav-center a .ltr {
+  display: inline-block;
+  transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), color 0.35s ease, text-shadow 0.35s ease;
+}
+body.page-about .nav-center a:hover .ltr {
+  animation: aboutNavLetterWave 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards;
+  animation-delay: calc(var(--i) * 28ms);
+}
+@keyframes aboutNavLetterWave {
+  0%   { transform: translateY(0); color: #fff; text-shadow: none; }
+  45%  { transform: translateY(-7px); color: #f4a135; text-shadow: 0 0 10px rgba(244,161,53,0.8); }
+  100% { transform: translateY(0); color: #9b5de5; text-shadow: 0 0 8px rgba(155,93,229,0.5); }
+}
+
+/* Button gradients — was overriding style.css's default magenta/green pair
+   to a one-off violet/gold palette here. Per request, about.html's header
+   should match index.html's actual buttons, which are magenta/green (same
+   as style.css's shared default) — so this override is removed and both
+   buttons just fall through to that shared rule now, same as index.html. */
+
+/* ══════════════════════════════════════════════════════════════
+   Title styles — ported from index.html's chapter-heading treatment
+   (Space Grotesk, weight 700, tight letter-spacing) for every major
+   heading, and its eyebrow treatment (uppercase, wide tracking, soft
+   glow in the label's own color) for the small labels above them.
+   ══════════════════════════════════════════════════════════════ */
+body.page-about .about-hero-title,
+body.page-about .era-name,
+body.page-about .manifesto-title,
+body.page-about .methodology-heading,
+body.page-about .stackless-title,
+body.page-about .veracity-title,
+body.page-about .three-tier-heading,
+body.page-about .outro-heading,
+body.page-about .hf-title {
+  font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+body.page-about .origin-label,
+body.page-about .era-dates,
+body.page-about .methodology-label,
+body.page-about .three-tier-label,
+body.page-about .hf-label {
+  font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  text-shadow: 0 0 16px currentColor;
+}
+
+#bg-canvas {
+  transition: opacity 0.25s ease-out;
+}
+.electrical-node, .connector-line {
+  transition: opacity 0.35s ease-out, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+#wire-animated, #plasma-1, #plasma-2 {
+  transition: stroke-dashoffset 0.05s linear;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   WebGL canvases replacing the old flat 2D canvas art
+   ══════════════════════════════════════════════════════════════ */
+#dna-canvas, #circuit-canvas { display: block; }
+
+/* ══════════════════════════════════════════════════════════════
+   Real background — the same skybox + near/far star-point fields
+   as index.html, rendered on their own persistent fixed canvas
+   (#gl inside .stage), the same architecture index.html itself
+   uses. This replaces this page's earlier from-scratch background
+   attempts entirely.
+   ══════════════════════════════════════════════════════════════ */
+.stage {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  z-index: 0;
+  pointer-events: none;
+}
+canvas#gl {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 55%, rgba(3,2,8,0) 35%, rgba(3,2,8,0.6) 100%),
+    linear-gradient(to bottom, rgba(3,2,8,0.4) 0%, rgba(3,2,8,0) 20%, rgba(3,2,8,0) 70%, rgba(3,2,8,0.55) 100%);
+  z-index: 5;
+}
+
+#ambient-dust-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Scroll-linked 3D card depth — perspective on the existing card
+   grids so .stackless-card / .three-tier-card / .veracity-row can
+   tilt in real 3D as they cross the viewport (driven from JS below),
+   instead of only fading in flat.
+   ══════════════════════════════════════════════════════════════ */
+.stackless-grid, .three-tier-cards, .veracity-table {
+  perspective: 1400px;
+}
+.stackless-card, .three-tier-card, .veracity-row {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   Footer bookend — a one-shot particle convergence around the footer
+   logo, mirroring the hero's opening dust-settle, so the page closes
+   with the same motion language it opened with.
+   ══════════════════════════════════════════════════════════════ */
+.footer-logo-wrap {
+  position: relative;
+  display: inline-block;
+}
+#footer-logo-canvas {
+  position: absolute;
+  inset: -40px;
+  width: calc(100% + 80px);
+  height: calc(100% + 80px);
+  pointer-events: none;
+}
+
+/* Page transition (the cosmic particle overlay + layered content
+   fade) lives entirely in page-transition.js/.css now — it creates
+   and manages its own #page-transition overlay dynamically. */
+</style>
+</head>
+
+<body class="page-about">
+
+<div class="stage">
+  <canvas id="gl"></canvas>
+  <div class="vignette"></div>
+</div>
+<canvas id="bg-canvas"></canvas>
+<canvas id="ambient-dust-canvas"></canvas>
+<script>
+/* ══════════════════════════════════════════════════════════════
+   Foreground wave-dot terrain — about.html's own shader particle
+   field, ported verbatim onto #bg-canvas. Rendered with a transparent
+   clear color (alpha:true, no setClearColor fill) and no scene.background,
+   so the real index.html skybox + star field on #gl shows through in the
+   sky/gaps behind it — #bg-canvas sits later in the DOM than .stage, so
+   per same-z-index stacking order it paints in front of the stars.
+   Entrance ("opening dive": particles converge from a scatter + camera
+   pulls back) fires via window.__playOpeningDive(), called from
+   playHeaderIn() below as soon as the page finishes loading.
+   ══════════════════════════════════════════════════════════════ */
+(function () {
+  const canvas   = document.getElementById('bg-canvas');
+  if (!canvas) return;
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setClearColor(0x000000, 0);
+  renderer.setSize(innerWidth, innerHeight);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 300);
+  const CAM_REST = { x: 0, y: 3.5, z: 12 };
+  camera.position.set(0, 1.1, 6.2);
+  camera.lookAt(0, -2, 0);
+
+  const COLS = 420; const ROWS = 180; const W = 42; const D = 22;
+  const total = COLS * ROWS;
+  const positions = new Float32Array(total * 3);
+  const uvData = new Float32Array(total * 2);
+  const randoms = new Float32Array(total);
+  const scatter = new Float32Array(total * 3);
+
+  let idx = 0;
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      positions[idx * 3]     = (c / (COLS - 1) - 0.5) * W;
+      positions[idx * 3 + 1] = 0;
+      positions[idx * 3 + 2] = (r / (ROWS - 1)) * D;
+      uvData[idx * 2]     = c / (COLS - 1);
+      uvData[idx * 2 + 1] = r / (ROWS - 1);
+      randoms[idx]        = Math.random();
+      scatter[idx * 3]     = (Math.random() - 0.5) * 30;
+      scatter[idx * 3 + 1] = (Math.random() - 0.5) * 3 + 8 + Math.random() * 10;
+      scatter[idx * 3 + 2] = (Math.random() - 0.5) * 30;
+      idx++;
+    }
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geo.setAttribute('uv',       new THREE.BufferAttribute(uvData, 2));
+  geo.setAttribute('aRnd',     new THREE.BufferAttribute(randoms, 1));
+  geo.setAttribute('aScatter', new THREE.BufferAttribute(scatter, 3));
+
+  const vert = `
+    uniform float uTime; uniform float uSettle;
+    attribute float aRnd; attribute vec3 aScatter;
+    varying float vH; varying float vDepth; varying float vSettle;
+    float hash(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
+    float vnoise(vec2 p){
+      vec2 i=floor(p); vec2 f=fract(p); vec2 u=f*f*(3.0-2.0*f);
+      return mix(mix(hash(i),hash(i+vec2(1,0)),u.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x),u.y);
+    }
+    void main(){
+      vDepth = uv.y; float t = uTime * 0.45; float x = position.x; float z = position.z;
+      float h = 0.0;
+      h += sin(x*0.50 + t*1.20) * 1.40; h += sin(x*1.10 - t*0.85) * 0.75;
+      h += cos(z*0.38 + t*0.90) * 0.90; h += vnoise(vec2(x*0.20+t*0.16, z*0.20-t*0.13)) * 1.60;
+      h *= smoothstep(0.0, 0.30, vDepth) * smoothstep(1.0, 0.45, vDepth) * 1.25;
+      h -= 4.2; vH = clamp((h + 4.2) / 6.5, 0.0, 1.0);
+      vSettle = uSettle;
+      vec3 pos = position; pos.y = h;
+      pos += aScatter * (1.0 - uSettle);
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+      gl_PointSize = mix(2.2, 7.5, vDepth) * (0.70 + aRnd * 0.65) * (1.0 + vH * 0.65) * mix(0.35, 1.0, uSettle);
+    }
+  `;
+
+  const frag = `
+    varying float vH; varying float vDepth; varying float vSettle;
+    void main(){
+      vec2 uv = gl_PointCoord - 0.5; if(length(uv) > 0.5) discard;
+      float core = smoothstep(0.12, 0.0, length(uv));
+      float mid = smoothstep(0.30, 0.05, length(uv)) * 0.85;
+      float halo = smoothstep(0.50, 0.08, length(uv)) * 0.55;
+      vec3 col = mix(mix(mix(vec3(0.48, 0.06, 0.92), vec3(0.72, 0.25, 1.00), smoothstep(0.0, 0.40, vH)), vec3(0.90, 0.55, 1.00), smoothstep(0.40, 0.72, vH)), vec3(1.00, 0.95, 1.00), smoothstep(0.72, 1.00, vH));
+      gl_FragColor = vec4(clamp(col + vec3(0.70, 0.45, 1.00) * core * 0.90 + vec3(0.40, 0.10, 0.75) * mid * 0.45, 0.0, 1.0), (core + mid + halo) * mix(0.55, 1.0, vDepth) * smoothstep(0.0, 0.42, vDepth) * mix(0.3, 1.0, vSettle));
+    }
+  `;
+
+  const mat = new THREE.ShaderMaterial({ uniforms: { uTime: { value: 0 }, uSettle: { value: 0 } }, vertexShader: vert, fragmentShader: frag, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
+  const wave = new THREE.Points(geo, mat); wave.position.set(0, -2.6, -3); scene.add(wave);
+
+  window.addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+  const clock = new THREE.Clock();
+  let camDiveActive = true;
+  (function loop() {
+    requestAnimationFrame(loop);
+    mat.uniforms.uTime.value = clock.getElapsedTime();
+    const bob = Math.sin(clock.getElapsedTime() * 0.18) * 0.12;
+    if (!camDiveActive) camera.position.y = CAM_REST.y + bob;
+    renderer.render(scene, camera);
+  })();
+
+  window.__playOpeningDive = function () {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) { mat.uniforms.uSettle.value = 1; camera.position.set(CAM_REST.x, CAM_REST.y, CAM_REST.z); camDiveActive = false; return; }
+    gsap.to(mat.uniforms.uSettle, { value: 1, duration: 2.4, ease: 'power2.out', delay: 0.1 });
+    gsap.to(camera.position, {
+      x: CAM_REST.x, y: CAM_REST.y, z: CAM_REST.z, duration: 2.6, ease: 'power3.out', delay: 0.1,
+      onComplete: () => { camDiveActive = false; }
+    });
+  };
+})();
+</script>
+<script>
+/* ══════════════════════════════════════════════════════════════
+   Background + stars — the same skybox and near/far star-point
+   fields as index.html, at the same camera scale they were built
+   for (camera far out at z≈40, looking back toward the origin),
+   which is why the exact same size/opacity numbers read correctly
+   here. Rendered on its own canvas (#gl) so it's fully independent
+   of #bg-canvas (kept only as an inert element further down's
+   opacity toggles still target harmlessly) and #ambient-dust-canvas.
+   ══════════════════════════════════════════════════════════════ */
+(function () {
+  const canvas = document.getElementById('gl');
+  if (!canvas) return;
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, window.innerWidth < 700 ? 1.25 : 1.5));
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color('#030208');
+  const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 700);
+  const CAM_BASE = { x: 0, y: 0, z: 40 };
+  camera.position.set(CAM_BASE.x, CAM_BASE.y, CAM_BASE.z);
+  camera.lookAt(0, 0, 24);
+
+  const fog = new THREE.FogExp2(new THREE.Color('#030208').getHex(), 0.0055);
+  scene.fog = fog;
+
+  function resizeGL() {
+    const w = window.innerWidth, h = window.innerHeight;
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  window.addEventListener('resize', resizeGL);
+  resizeGL();
+
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---- Galaxy skybox (ported verbatim from index.html) ---- */
+  const SKY_BASE = '#030208';
+  function skyLightFrom(hex, peak, whiten) {
+    const r = parseInt(hex.substr(1, 2), 16),
+          g = parseInt(hex.substr(3, 2), 16),
+          b = parseInt(hex.substr(5, 2), 16);
+    const k = peak / (Math.max(r, g, b) || 1);
+    const mix = (v) => Math.round(v * k + (255 - v * k) * whiten);
+    return mix(r) + ',' + mix(g) + ',' + mix(b);
+  }
+  const SKY_LIGHT = skyLightFrom(SKY_BASE, 170, 0.35);
+  const SKY_MONOCHROME = true;
+  const SKY_GLOW = 0.30;
+
+  function buildGalaxySkyTexture() {
+    const W = 1600, H = 800;
+    const c = document.createElement('canvas'); c.width = W; c.height = H;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = SKY_MONOCHROME ? SKY_BASE : '#050208';
+    ctx.fillRect(0, 0, W, H);
+
+    const bandRGB = SKY_MONOCHROME ? SKY_LIGHT : '150,90,200';
+    const bandA = 0.045 * (SKY_MONOCHROME ? SKY_GLOW : 1);
+    const band = ctx.createLinearGradient(0, H * 0.28, 0, H * 0.72);
+    band.addColorStop(0, 'rgba(' + bandRGB + ',0)');
+    band.addColorStop(0.5, 'rgba(' + bandRGB + ',' + bandA + ')');
+    band.addColorStop(1, 'rgba(' + bandRGB + ',0)');
+    ctx.fillStyle = band;
+    ctx.fillRect(0, H * 0.26, W, H * 0.48);
+
+    const blobDefs = [
+      { x: 0.12, y: 0.40, r: 220, rgb: '200,90,220', a: 0.07 },
+      { x: 0.32, y: 0.60, r: 190, rgb: '110,90,235', a: 0.06 },
+      { x: 0.58, y: 0.34, r: 260, rgb: '150,80,255', a: 0.065 },
+      { x: 0.80, y: 0.56, r: 190, rgb: '230,110,200', a: 0.05 },
+      { x: 0.46, y: 0.20, r: 160, rgb: '180,150,255', a: 0.03 },
+      { x: 0.94, y: 0.30, r: 140, rgb: '90,110,255', a: 0.045 },
+    ];
+    const blobs = blobDefs.map(function (b) {
+      const rgb = SKY_MONOCHROME ? SKY_LIGHT : b.rgb;
+      const a = b.a * (SKY_MONOCHROME ? SKY_GLOW : 1);
+      return { x: b.x, y: b.y, r: b.r, c: 'rgba(' + rgb + ',' + a + ')' };
+    });
+    ctx.globalCompositeOperation = 'lighter';
+    blobs.forEach(b => {
+      const g = ctx.createRadialGradient(b.x * W, b.y * H, 0, b.x * W, b.y * H, b.r);
+      g.addColorStop(0, b.c);
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, W, H);
+    });
+    ctx.globalCompositeOperation = 'source-over';
+
+    for (let i = 0; i < 1200; i++) {
+      const x = Math.random() * W, y = Math.random() * H;
+      const inBand = y > H * 0.28 && y < H * 0.72;
+      const r = Math.random() * (inBand ? 1.7 : 1.1) + 0.2;
+      const a = Math.random() * 0.8 + 0.2;
+      ctx.beginPath();
+      ctx.fillStyle = `rgba(255,255,255,${a})`;
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.needsUpdate = true;
+    return tex;
+  }
+
+  const skyGeo = new THREE.SphereGeometry(320, 40, 24);
+  const skyMat = new THREE.MeshBasicMaterial({ map: buildGalaxySkyTexture(), side: THREE.BackSide, fog: false });
+  const skyMesh = new THREE.Mesh(skyGeo, skyMat);
+  scene.add(skyMesh);
+
+  /* ---- Star point-fields (ported verbatim from index.html) ---- */
+  function starTexture() {
+    const s = 128;
+    const c = document.createElement('canvas'); c.width = s; c.height = s;
+    const ctx = c.getContext('2d');
+    const g = ctx.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+    g.addColorStop(0, 'rgba(255,255,255,1)');
+    g.addColorStop(0.12, 'rgba(255,255,255,0.85)');
+    g.addColorStop(0.3, 'rgba(255,255,255,0.12)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, s, s);
+    return new THREE.CanvasTexture(c);
+  }
+  const STAR_TEX = starTexture();
+
+  function buildStars(count, radius, zSpan, size, opacity) {
+    const positions = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      positions[i * 3]     = (Math.random() - 0.5) * radius;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * radius * 0.6;
+      positions[i * 3 + 2] = 45 - Math.random() * zSpan;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const mat = new THREE.PointsMaterial({
+      size, map: STAR_TEX, color: 0xffffff, transparent: true, opacity,
+      depthWrite: false, blending: THREE.AdditiveBlending
+    });
+    return new THREE.Points(geo, mat);
+  }
+  function makeStarField(layers, countEach, radius, zSpan, size, baseOpacity) {
+    const group = new THREE.Group();
+    const list = [];
+    for (let i = 0; i < layers; i++) {
+      const mesh = buildStars(countEach, radius, zSpan, size, baseOpacity);
+      group.add(mesh);
+      list.push({ mesh, baseOpacity, phase: Math.random() * Math.PI * 2, speed: 0.5 + Math.random() * 0.9 });
+    }
+    scene.add(group);
+    return { group, layers: list };
+  }
+  const nearStarField = makeStarField(4, 163, 34, 150, 0.055, 0.85);
+  const farStarField  = makeStarField(3, 133, 130, 220, 0.045, 0.4);
+
+  const clock = new THREE.Clock();
+  (function loop() {
+    requestAnimationFrame(loop);
+    const elapsed = clock.getElapsedTime();
+    if (!reducedMotion) {
+      [...nearStarField.layers, ...farStarField.layers].forEach((l) => {
+        const twinkle = 0.78 + 0.22 * Math.sin(elapsed * l.speed + l.phase);
+        l.mesh.material.opacity = l.baseOpacity * twinkle;
+      });
+      nearStarField.group.rotation.z = elapsed * 0.003;
+      farStarField.group.rotation.z = -elapsed * 0.0015;
+      skyMesh.rotation.y = elapsed * 0.004;
+      // Idle camera breathing — a slow, small drift so the background
+      // feels alive even while the page itself sits still.
+      camera.position.x = CAM_BASE.x + Math.sin(elapsed * 0.05) * 1.4;
+      camera.position.y = CAM_BASE.y + Math.sin(elapsed * 0.037) * 0.8;
+      camera.lookAt(0, 0, 24);
+    }
+    renderer.render(scene, camera);
+  })();
+})();
+</script>
+
+<header class="main-header">
+  <div class="logo"><a href="/en" target="_top"><img src="media/logo-new.png" alt="Revacity" fetchpriority="high" /></a></div>
+
+  <nav class="nav-center">
+      <a href="/en" target="_top" data-text="The Collapse">The Collapse</a>
+      <a href="/en/about" target="_top" data-text="About Us">About Us</a>
+      <a href="/en/before-judging-us" target="_top" data-text="Before Judging">Before Judging</a>
+      <a href="/en/compare" target="_top" data-text="Compare">Compare</a>
+      <a href="/en/blog" target="_top" data-text="Blog">Blog</a>
+  </nav>
+
+  <div style="display: flex; align-items: center; gap: 20px;">
+
+      <div class="header-buttons">
+          <a href="/en/start-a-warrant" target="_top" class="btn-warrant" data-value="Start a Warrant">
+              <span>Start a Warrant</span>
+          </a>
+          <a href="/en/100k-challenge" target="_top" class="btn-reward" data-value="$100k Reward">
+              <span>$100k Reward</span>
+          </a>
+      </div>
+      <div class="hamburger" id="hamburger">
+          <span></span>
+          <span></span>
+          <span></span>
+      </div>
+  </div>
+</header>
+<div class="mobile-slide-menu" id="mobile-menu">
+    <div class="close-menu" id="close-menu">
+        <span></span>
+        <span></span>
+    </div>
+
+    <a href="/en" target="_top" class="menu-item" style="--i: 1;">The Collapse</a>
+    <a href="/en/about" target="_top" class="menu-item" style="--i: 2;">About Us</a>
+    <a href="/en/before-judging-us" target="_top" class="menu-item" style="--i: 3;">Before Judging</a>
+    <a href="/en/compare" target="_top" class="menu-item" style="--i: 4;">Compare</a>
+    <a href="/en/blog" target="_top" class="menu-item" style="--i: 5;">Blog</a>
+
+    <div class="mobile-menu-cta" style="--i: 6;">
+        <a href="/en/start-a-warrant" target="_top" class="btn-warrant" data-value="Start a Warrant"><span>Start a Warrant</span></a>
+        <a href="/en/100k-challenge" target="_top" class="btn-reward" data-value="$100k Reward"><span>$100k Reward</span></a>
+    </div>
+</div>
+
+<div id="scroll-indicator">
+  <div class="scroll-pill">
+    <div class="scroll-arrow-inner">
+      <svg viewBox="0 0 14 18" xmlns="http://www.w3.org/2000/svg">
+        <line x1="7" y1="1" x2="7" y2="14" />
+        <polyline points="3,10 7,15 11,10" />
+      </svg>
+    </div>
+  </div>
+</div>
+
+<div id="pin-wrapper">
+  <div id="track">
+
+    <section id="hero">
+      <p class="origin-label" data-cms-slot="originLabel">The Origin</p>
+      <h1 class="about-hero-title" data-cms-slot="heroHeading">How We Got Here.</h1>
+      <p class="hero-subtitle" data-cms-slot="heroSubtitle">Living, human-first, Zero-legacy, Dynamic knowledge graph, Stackless stack (JIT learning), Metacognition agency, following stateless outcome engineering practice specialized in marketing and Ai intelligence</p>
+
+    </section>
+
+    <section id="timeline-section">
+      <svg class="svg-timeline-container" id="timeline-svg">
+        <defs>
+          <linearGradient id="stream-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#ff1e3d" />
+            <stop offset="28%" stop-color="#fbaec1" />
+            <stop offset="50%" stop-color="#ffffff" />
+            <stop offset="72%" stop-color="#9d4eff" />
+            <stop offset="100%" stop-color="#ffea00" />
+          </linearGradient>
+        </defs>
+        <path class="electricity-back" d="" id="wire-back" />
+        <path class="plasma-aura" d="" id="plasma-1" />
+        <path class="plasma-aura" d="" id="plasma-2" />
+        <path class="electricity-wire" d="" id="wire-animated" />
+      </svg>
+
+      <div class="electrical-node era-1-node" id="node-1"></div>
+      <div class="electrical-node era-2-node" id="node-2"></div>
+      <div class="electrical-node era-3-node" id="node-3"></div>
+      <div class="electrical-node era-4-node" id="node-4"></div>
+
+      <div class="pulse-ring era-1-node" id="pulse-1"></div>
+      <div class="pulse-ring era-2-node" id="pulse-2"></div>
+      <div class="pulse-ring era-3-node" id="pulse-3"></div>
+      <div class="pulse-ring era-4-node" id="pulse-4"></div>
+
+      <div class="era-card era-1" id="card-1">
+        <p class="era-dates">2007–2015</p>
+        <h2 class="era-name" data-cms-slot="era1Name">The Foundation</h2>
+        <p class="era-body" data-cms-slot="era1Body">Eighteen years in the trenches. Not in agencies — in the businesses themselves. Retail, e-commerce, FMCG, hospitality.</p>
+        <div class="connector-line"></div>
+      </div>
+
+      <div class="era-card era-2" id="card-2">
+        <div class="connector-line"></div>
+        <p class="era-dates">2015–2023</p>
+        <h2 class="era-name" data-cms-slot="era2Name">The Realization</h2>
+        <p class="era-body" data-cms-slot="era2Body">The industry kept getting louder and less useful. More tools, more platforms, more acronyms — and less revenue.</p>
+      </div>
+
+      <div class="era-card era-3" id="card-3">
+        <p class="era-dates">2023–2024</p>
+        <h2 class="era-name" data-cms-slot="era3Name">The Frontier</h2>
+        <p class="era-body" data-cms-slot="era3Body">AI changed the game — not because it replaced humans, but because it amplified the gap between good and bad operators.</p>
+        <div class="connector-line"></div>
+      </div>
+
+      <div class="era-card era-4" id="card-4">
+        <div class="connector-line"></div>
+        <p class="era-dates">2024–Now</p>
+        <h2 class="era-name" data-cms-slot="era4Name">REVacity</h2>
+        <p class="era-body" data-cms-slot="era4Body">Built from Aqaba, Jordan. Revenue Warrants instead of contracts. Sovereign Architects instead of account managers.</p>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<div id="outro">
+  <div class="outro-inner-wrap">
+    <img src="media/REVacity.png" alt="REVacity" class="outro-logo" />
+    <div class="outro-blocks">
+      <div class="outro-block outro-block--left">
+        <h2 class="outro-heading" data-cms-slot="outroHeading">Frontier Revenue &amp; Growth<br>Engineering Practice</h2>
+        <p class="outro-body" data-cms-slot="outroBody">REVacity is a living, human-first agency that has fully embraced and converged with Modern, Hyper, and Intelligence marketing — specialized in Marketing 7.0 — integrated with the latest AI practices. We harness AI for collective human intelligence and metacognition, embedded across every node of the commercial stack to generate beyond-ordinary outcomes and guaranteed results.</p>
+      </div>
+      <div class="outro-block outro-block--right">
+        <h2 class="outro-heading outro-heading--accent" data-cms-slot="outroHeading2">A gifted Revenue and Growth <br /> Intelligence agency.</h2>
+        <p class="outro-body outro-body--bold" data-cms-slot="outroBody2">We harness the power of AI for Collective Human Intelligence and Metacognition (AI-Co-pilot Mastery), embedding it across every node of the commercial stack Generated Beyond ordinary Outcomes.</p>
+      </div>
+    </div>
+
+
+    <div class="stateless-banner">
+      <div class="stateless-left">
+        <canvas class="stateless-left-canvas" id="stateless-canvas"></canvas>
+        <p class="stateless-left-label" data-cms-slot="statelessLeftLabel">Philosophy /</p>
+        <h2 class="stateless-left-heading" data-cms-slot="statelessLeftHeading">
+          WE ARE <span class="hl-orange">NOT AN AGENCY.</span><br>
+          WE ARE A STATELESS<br>
+          OUTCOME ENGINEERING
+          PRACTICE.
+        </h2>
+      </div>
+      <div class="stateless-right">
+        <p class="stateless-right-text" data-cms-slot="statelessRightText">No frameworks. No templates. No pre-packaged solutions. Every engagement is a first-time build — because your reality hasn't been engineered yet.</p>
+      </div>
+    </div>
+    <div class="veracity-section">
+
+      <div class="veracity-left">
+        <h2 class="veracity-title" data-cms-slot="veracityTitle">REVacity Is Veracity, Rotated.</h2>
+        <p class="veracity-intro" data-cms-slot="veracityIntro">We took the oldest word in business — truth — and turned its first three letters into Rev: revenue, the engine revving, the revolution against legacy. What's left is a name that carries its philosophy in its spelling.</p>
+        <div class="veracity-table">
+          <div class="veracity-row">
+            <span class="vr-term">Rev</span>
+            <span class="vr-arrow">&#8594;</span>
+            <span class="vr-def">Revenue, acceleration, engine, commercial output</span>
+          </div>
+          <div class="veracity-row">
+            <span class="vr-term">Veracity</span>
+            <span class="vr-arrow">&#8594;</span>
+            <span class="vr-def">Truth, proof, accuracy, authenticity</span>
+          </div>
+          <div class="veracity-row">
+            <span class="vr-term">-acity</span>
+            <span class="vr-arrow">&#8594;</span>
+            <span class="vr-def">Capacity, audacity, velocity, adaptability</span>
+          </div>
+          <div class="veracity-row veracity-row--highlight">
+            <span class="vr-term vr-term--highlight">REVacity</span>
+            <span class="vr-arrow vr-arrow--highlight">&#8594;</span>
+            <span class="vr-def vr-def--highlight">The capacity to engineer revenue from truth</span>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="veracity-right">
+        <p class="vr2-headline" data-cms-slot="vr2Headline">We are not just another "digital marketing agency."</p>
+        <p class="vr2-subheading" data-cms-slot="vr2Subheading">We Know The market is flooded with execution-only shops.</p>
+        <ul class="vr2-list">
+          <li><strong>Human-First Marketing:</strong> Because AI makes everything look similar, the key to success is authentic, real stories from employees and customers to build trust.</li>
+          <li><strong>Data-Driven, Not Just Data-Rich:</strong> Marketing must move from vanity metrics to "systemized, strategy-first" execution, leveraging first-party data for personalization without being "creepy".</li>
+          <li><strong>High-Intent Consolidation:</strong> High-performing teams are cutting numerous, low-performing channels and consolidating funds into high-intent environments.</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<section id="manifesto-section">
+  <canvas id="dna-canvas"></canvas>
+  <div class="manifesto-layout">
+
+
+    <div class="manifesto-left manifesto-inner">
+      <h2 class="manifesto-title" data-cms-slot="manifestoTitle">Our Manifesto</h2>
+      <div class="manifesto-body">
+        <p data-cms-slot="manifestoP1">The AI scene today is overwhelming everyone with daily if not hourly hype trains, each with its own set of new concepts and updated terminology.</p>
+        <p data-cms-slot="manifestoP2">It is hard to tell apart real signals from the misleading noise. Enterprises are selling fluff with the goal of looking trendy instead of truthful, and are spending more effort attracting instead of solving problems. Clients chase these buzzwords, and ignore the fact that they were sold "trends" with no actual truth to them.</p>
+        <p data-cms-slot="manifestoP3">Narrowing your pains or goals to fit one of the pre-packaged common, trendy terms is not just lazy—it's malpractice. We believe that clients are looking for clear outputs, specifically one of two things: increasing revenue or customer acquisition. We also believe there is no one-size-fits-all solution for everyone.</p>
+      </div>
+      <blockquote class="manifesto-quote" data-cms-slot="manifestoQuote">
+        If its Generative, if its intelligence, Curated and engineered only for you....How come it have a name !!?
+      </blockquote>
+
+      <p class="manifesto-revenue" data-cms-slot="manifestoRevenue">
+        We are revenue oriented and output driven - the only numbers both we and our clients like to check are our bank accounts.
+      </p>
+
+      <p class="manifesto-unfair">
+        <span class="uf-gold" data-cms-slot="manifestoUnfairGold">WE ARE THE UNFAIR</span> <span class="uf-purple" data-cms-slot="manifestoUnfairPurple">CHOICE FOR YOUR COMPETITORS</span>
+      </p>
+    </div>
+
+
+    <div class="manifesto-right">
+      <div class="vm-block">
+        <h3 class="vm-title">Our vision:</h3>
+        <ul class="vm-list">
+          <li data-cms-slot="visionText">Elevating business from "Managing Complexity" to "Architected Intelligence", transforming market noise into the clarity of Guranteed Revenue&amp; Growth through a self-evolving Cognitive-Contextual-Aware-Engineered Ecosystem, We look to Act as Ai, Modern marketing Boutique.</li>
+        </ul>
+      </div>
+      <div class="vm-block">
+        <h3 class="vm-title">Our Mission:</h3>
+        <ul class="vm-list">
+          <li data-cms-slot="missionText1">The Differentiation: They manage "Traffic" and "Funnels"; We engineer "Cognition" and "Novel Outcomes". We operationalize Human-Machine Teaming For ROI Elevation Not only Optimization, fusing Predictive Intelligence with Data-Profit Driven Creativity to ensure every interaction is a verified step toward Revenue, Acquisition, Activation, and Retention (RAAR)</li>
+          <li data-cms-slot="missionText2">Our Industry is dynamic; So we are, We are driven by the desired and targeted outcomes and Values, Not based on our capabilities or prior skills or even the massive experience. Same As we are not a Development House, or Agents market place, we are Not Digital marketing and content Generation agency, If there is a tool or a solution for it, Does not converge with (Value-Time-Budget) Its clear stupidity to build it. that's why we are Human-First Ai agency, Moving From Hand to Mind (Click become Intent), and we are here to make it action</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+
+</section>
+
+<section id="methodology-section">
+  <div class="methodology-section">
+    <div class="methodology-cols">
+
+
+      <div class="methodology-left">
+        <p class="methodology-label" data-cms-slot="methodologyLabel">The Methodology</p>
+        <h2 class="methodology-heading" data-cms-slot="methodologyHeading">How We Think</h2>
+        <div class="methodology-list">
+          <div class="methodology-item">
+            <span class="methodology-num">1.</span>
+            <div class="methodology-content">
+              <span class="methodology-item-title">Truth over Trends</span>
+              <span class="methodology-item-body">Every solution must be Novel, Modular, and Native. Off-the-shelf is rejected on principle.</span>
+            </div>
+          </div>
+          <div class="methodology-item">
+            <span class="methodology-num">2.</span>
+            <div class="methodology-content">
+              <span class="methodology-item-title">Surgical Liberation</span>
+              <span class="methodology-item-body">The first move is to identify what to delete, not what to build.</span>
+            </div>
+          </div>
+          <div class="methodology-item">
+            <span class="methodology-num">3.</span>
+            <div class="methodology-content">
+              <span class="methodology-item-title">Meaning over Measurement</span>
+              <span class="methodology-item-body">We compute how fast meaning is changing and in what direction. Vanity metrics are abandoned at the perimeter.</span>
+            </div>
+          </div>
+          <div class="methodology-item">
+            <span class="methodology-num">4.</span>
+            <div class="methodology-content">
+              <span class="methodology-item-title">Contextual Engineering</span>
+              <span class="methodology-item-body">We solve for Zero or Messy Data by default. Data Fabrication closes the gap.</span>
+            </div>
+          </div>
+          <div class="methodology-item">
+            <span class="methodology-num">5.</span>
+            <div class="methodology-content">
+              <span class="methodology-item-title">Capability Bias Doctrine (JIT Learning)</span>
+              <span class="methodology-item-body">We acquire capabilities when needed, not before. No mastery trap, no model bias, no platform allegiance.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="three-tier-panel">
+        <p class="three-tier-label" data-cms-slot="threeTierLabel">Quality Architecture</p>
+        <h2 class="three-tier-heading" data-cms-slot="threeTierHeading">THREE-TIER<br>EVALUATION.</h2>
+        <p class="three-tier-sub" data-cms-slot="threeTierSub">Every output passes three gates before it earns the Revacity seal.</p>
+        <div class="three-tier-cards">
+          <div class="three-tier-card">
+            <div class="three-tier-card-num">01</div>
+            <div class="three-tier-card-title">Contextual Fidelity</div>
+            <div class="three-tier-card-body">Does this output maintain meaning within the client's specific context? Generic answers fall here. Every output must be contextually bound to the client's reality.</div>
+          </div>
+          <div class="three-tier-card">
+            <div class="three-tier-card-num">02</div>
+            <div class="three-tier-card-title">Semantic Leverage</div>
+            <div class="three-tier-card-body">Does this output create disproportionate impact relative to its complexity? We optimize for semantic leverage — small precise changes that shift entire meaning systems.</div>
+          </div>
+          <div class="three-tier-card">
+            <div class="three-tier-card-num">03</div>
+            <div class="three-tier-card-title">Warrant Integrity</div>
+            <div class="three-tier-card-body">Can we stand behind this output with a Revenue Warrant? If the answer is no, the output doesn't ship. Warrant integrity is the ultimate filter.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section id="stackless-section">
+  <div class="stackless-inner">
+
+    <div class="stackless-header">
+      <h2 class="stackless-title" data-cms-slot="stacklessTitle">The <span class="hl-orange">Stackless</span> Stack</h2>
+    </div>
+
+    <div class="stackless-subtitle-row">
+      <span class="stackless-subtitle-item">
+        <span class="stackless-dot stackless-dot--white"></span>
+        <strong>The Human Stack</strong> — Sovereign Architects (own intent)
+      </span>
+      <span class="stackless-subtitle-item">
+        <span class="stackless-dot stackless-dot--red"></span>
+        <strong>The Agentic Workforce</strong> — Meta-Configurable Swarms (own scale)
+      </span>
+    </div>
+
+    <p class="stackless-bridge" data-cms-slot="stacklessBridge">The DKG is the bridge.</p>
+
+    <div class="stackless-divider"></div>
+
+    <div class="stackless-grid">
+
+      <div class="stackless-card">
+        <div class="stackless-card-num">1.</div>
+        <div class="stackless-card-content">
+          <div class="stackless-card-title">Authenticity over AI —<br>Human First.</div>
+          <div class="stackless-card-body">AI amplifies human brilliance; it does not replace human judgment.</div>
+        </div>
+      </div>
+
+      <div class="stackless-card">
+        <div class="stackless-card-num">2.</div>
+        <div class="stackless-card-content">
+          <div class="stackless-card-title">Meaning over Measurements.</div>
+          <div class="stackless-card-body">We don't count clicks; we measure Velocity of Trust.</div>
+        </div>
+      </div>
+
+      <div class="stackless-card">
+        <div class="stackless-card-num">3.</div>
+        <div class="stackless-card-content">
+          <div class="stackless-card-title">Truth, not Trend.</div>
+          <div class="stackless-card-body">Off-the-shelf is rejected on principle, not on style.</div>
+        </div>
+      </div>
+
+      <div class="stackless-card">
+        <div class="stackless-card-num">4.</div>
+        <div class="stackless-card-content">
+          <div class="stackless-card-title">High-value Specialists, not Generalists.</div>
+          <div class="stackless-card-body">Sovereign Architects, not account managers.</div>
+        </div>
+      </div>
+
+      <div class="stackless-card">
+        <div class="stackless-card-num">5.</div>
+        <div class="stackless-card-content">
+          <div class="stackless-card-title">Revenue Warrants, not<br>Service Contracts.</div>
+          <div class="stackless-card-body">We sign behind outcomes, not timesheets.</div>
+        </div>
+      </div>
+
+      <div class="stackless-card">
+        <div class="stackless-card-num">6.</div>
+        <div class="stackless-card-content">
+          <div class="stackless-card-title">Zero Legacy — Living Engine.</div>
+          <div class="stackless-card-body">No inherited frameworks, no unexamined patterns.</div>
+        </div>
+      </div>
+
+      <div class="stackless-card stackless-card2">
+        <div class="stackless-card-num">7.</div>
+        <div class="stackless-card-content">
+          <div class="stackless-card-title">Engineering High, not Defints.</div>
+          <div class="stackless-card-body">We sell results, not reports. Truths, not trends.</div>
+        </div>
+      </div>
+
+      <div class="stackless-card">
+        <div class="stackless-card-num">7.</div>
+        <div class="stackless-card-content">
+          <div class="stackless-card-title">Engineering Reality for a Better Future.</div>
+          <div class="stackless-card-body">We sell results, not reports. Truths, not trends.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section id="human-first-section">
+  <div class="hf-inner">
+
+
+    <div class="hf-left">
+      <p class="hf-label" data-cms-slot="hfLabel">Human First</p>
+      <h2 class="hf-title" data-cms-slot="hfTitle">Authenticity Beats<br /> AI Hype.</h2>
+      <div class="hf-body">
+        <p data-cms-slot="hfBody1">We use AI. We're not Luddites. But we use it as a tool, not a replacement for thinking. Our stack is neuro-symbolic: deterministic models where precision matters, non-deterministic models where creativity matters. The human is always in the loop. The human makes the call. The human owns the outcome.</p>
+        <p data-cms-slot="hfBody2">Every "AI agency" is selling you the dream of doing less. We're selling you the reality of achieving more. There's a difference, and it's measured in revenue.</p>
+      </div>
+      <p class="hf-quote" data-cms-slot="hfQuote">The only AI we trust is the one that makes us more human, not less.</p>
+    </div>
+
+
+    <div class="hf-right">
+      <canvas id="circuit-canvas"></canvas>
+    </div>
+
+  </div>
+</section>
+
+<script>
+
+gsap.registerPlugin(ScrollTrigger);
+
+/* ── Global smooth-scroll tuning ──
+   normalizeScroll(true) here is immediately turned back off on mobile by
+   the swipe-pagination controller further down this script, which needs
+   sole ownership of touchmove/window.scrollTo to paginate reliably — see
+   the comment in that controller's enable()/disable(). ── */
+gsap.ticker.lagSmoothing(1000, 16);
+ScrollTrigger.normalizeScroll(true);
+ScrollTrigger.config({ ignoreMobileResize: true });
+
+/* ── Header entrance — the page-transition overlay/scroll-lock is
+   now entirely owned by page-transition.js (its playEntrance(), when
+   arriving via the cosmic transition), so this just plays the
+   header's own slide/fade-in and kicks off the wave-terrain's
+   opening dive. On a direct (non-transition) load there's no lock to
+   release here either — none was taken. ── */
+gsap.set('.main-header', { y: -80, autoAlpha: 0 });
+(function playHeaderIn() {
+  gsap.to('.main-header', { y: 0, autoAlpha: 1, duration: 1, ease: 'power3.out' });
+  if (typeof window.__playOpeningDive === 'function') window.__playOpeningDive();
+})();
+
+/* ── Nav link letter-wave hover (ported from index.html) — each letter is
+   wrapped in its own span so hovering triggers a per-letter bounce+color
+   wave (aboutNavLetterWave, staggered by --i), instead of the simple
+   letter-spacing tween this used before. ── */
+document.querySelectorAll('.nav-center a').forEach(link => {
+  const text = link.textContent;
+  link.innerHTML = text.split('').map((ch, i) =>
+    `<span class="ltr" style="--i:${i}">${ch === ' ' ? '&nbsp;' : ch}</span>`
+  ).join('');
+});
+
+/* ── Social icons bounce on hover (matches 100K-Challenge.html) ── */
+document.querySelectorAll('.social-icon-btn').forEach(icon => {
+  icon.addEventListener('mouseenter', () => {
+    gsap.to(icon, { scale: 1.3, rotation: 10, duration: 0.3, ease: 'back.out(2)' });
+  });
+  icon.addEventListener('mouseleave', () => {
+    gsap.to(icon, { scale: 1, rotation: 0, duration: 0.4, ease: 'elastic.out(1, 0.4)' });
+  });
+});
+
+const track = document.getElementById('track');
+const wireBack = document.getElementById('wire-back');
+const wireAnimated = document.getElementById('wire-animated');
+const plasma1 = document.getElementById('plasma-1');
+const plasma2 = document.getElementById('plasma-2');
+
+let maxPathLength = 0;
+
+function scrollDist() { return track.scrollWidth - window.innerWidth; }
+/* Was: document.body.style.height = scrollDist() + innerHeight, unconditionally.
+   That's exactly enough room for the pin to scrub and nothing more — it was
+   silently truncating the page's real scrollable height to just the pin's
+   own range, which is why #outro and everything after it (manifesto,
+   methodology, stackless, human-first) were unreachable by any scroll,
+   touch or otherwise: the debug readout confirmed maxScroll == pinST.end
+   exactly. ScrollTrigger's own pin+end mechanism already inserts a
+   correctly-sized spacer for the pin; this manual height was never meant
+   to shrink the page below its natural full content height, only to
+   guarantee AT LEAST that much room while things are still settling early
+   on. Measuring the natural height first (by briefly clearing the inline
+   override) and taking whichever is taller preserves that original intent
+   without ever cutting off real content below. */
+function setBodyH() {
+  document.body.style.height = '';
+  const natural = document.body.scrollHeight;
+  const needed = scrollDist() + window.innerHeight;
+  document.body.style.height = Math.max(natural, needed) + 'px';
+}
+
+function drawElectricSpine() {
+  const section = document.getElementById('timeline-section');
+  if (!section) return;
+
+  const w = section.offsetWidth;
+  const h = section.offsetHeight;
+  const centerY = h * 0.5;
+
+  const cards = [1, 2, 3, 4].map(id => document.getElementById(`card-${id}`));
+  const nodes = [1, 2, 3, 4].map(id => document.getElementById(`node-${id}`));
+  const pulses = [1, 2, 3, 4].map(id => document.getElementById(`pulse-${id}`));
+
+  const getX = (card) => {
+    if (!card) return 0;
+    return card.offsetLeft + 35;
+  };
+
+  const isMobile = window.innerWidth <= 768;
+  const x0 = getX(cards[0]);
+  const x1 = getX(cards[1]);
+  const x2 = getX(cards[2]);
+  const x3 = getX(cards[3]);
+
+  let points = [];
+  if (isMobile) {
+
+    points.push({ x: x0, y: centerY });
+  } else {
+    points.push({ x: 0,  y: centerY });
+    points.push({ x: x0, y: centerY });
+  }
+
+  points.push({ x: x0 + (x1 - x0) * 0.52, y: centerY + 25 });
+  points.push({ x: x1, y: centerY });
+
+  points.push({ x: x1 + (x2 - x1) * 0.48, y: centerY - 30 });
+  points.push({ x: x2, y: centerY });
+
+  points.push({ x: x2 + (x3 - x2) * 0.55, y: centerY + 35 });
+  points.push({ x: x3, y: centerY });
+  points.push({ x: w,  y: centerY });
+
+  let pathMain = `M ${points[0].x} ${points[0].y}`;
+  let pathP1 = `M ${points[0].x} ${points[0].y}`;
+  let pathP2 = `M ${points[0].x} ${points[0].y}`;
+
+  for (let i = 1; i < points.length; i++) {
+    const prev = points[i - 1]; const curr = points[i];
+    const cpX1 = prev.x + (curr.x - prev.x) * 0.5; const cpX2 = cpX1;
+
+    pathMain += ` C ${cpX1} ${prev.y}, ${cpX2} ${curr.y}, ${curr.x} ${curr.y}`;
+    pathP1 += ` C ${cpX1} ${prev.y + 12}, ${cpX2} ${curr.y - 12}, ${curr.x} ${curr.y}`;
+    pathP2 += ` C ${cpX1} ${prev.y - 14}, ${cpX2} ${curr.y + 14}, ${curr.x} ${curr.y}`;
+  }
+
+  wireBack.setAttribute('d', pathMain);
+  wireAnimated.setAttribute('d', pathMain);
+  plasma1.setAttribute('d', pathP1);
+  plasma2.setAttribute('d', pathP2);
+
+  for (let i = 0; i < 4; i++) {
+    if (cards[i] && nodes[i] && pulses[i]) {
+      const posX = `${getX(cards[i])}px`;
+      nodes[i].style.left = posX; nodes[i].style.top = `${centerY}px`;
+      pulses[i].style.left = posX; pulses[i].style.top = `${centerY}px`;
+    }
+  }
+
+  maxPathLength = wireAnimated.getTotalLength();
+  [wireAnimated, plasma1, plasma2].forEach(el => {
+    el.style.strokeDasharray = maxPathLength; el.style.strokeDashoffset = maxPathLength;
+  });
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  setBodyH();
+  requestAnimationFrame(() => { drawElectricSpine(); ScrollTrigger.refresh(); });
+});
+
+window.addEventListener('load', () => { setBodyH(); drawElectricSpine(); ScrollTrigger.refresh(); });
+window.addEventListener('resize', () => { setBodyH(); drawElectricSpine(); ScrollTrigger.refresh(); });
+
+const trackRideTween = gsap.to(track, {
+  x: () => -scrollDist(),
+  ease: 'none',
+  scrollTrigger: {
+    trigger: '#pin-wrapper',
+    pin: true,
+    scrub: 1.2,
+    start: 'top top',
+    end: () => '+=' + scrollDist(),
+    invalidateOnRefresh: true,
+    onUpdate: self => {
+      if (maxPathLength > 0) {
+        const currentDashOffset = maxPathLength - (self.progress * maxPathLength);
+        [wireAnimated, plasma1, plasma2].forEach(el => el.style.strokeDashoffset = currentDashOffset);
+      }
+
+      const section = document.getElementById('timeline-section');
+      if (!section) return;
+      const currentXProgress = self.progress * section.offsetWidth;
+
+      document.querySelectorAll('.era-card').forEach((card, i) => {
+        const nodeEl = document.getElementById(`node-${i + 1}`);
+        const pulseEl = document.getElementById(`pulse-${i + 1}`);
+        if (!nodeEl || !pulseEl) return;
+
+        const connectorLine = card.querySelector('.connector-line');
+        const targetTriggerX = card.offsetLeft + 35;
+        const isTopCard = card.classList.contains('era-1') || card.classList.contains('era-3');
+        const fromY = isTopCard ? -60 : 60;
+
+        if (currentXProgress >= targetTriggerX) {
+          if (!card._revealed) {
+            card._revealed = true;
+            gsap.fromTo(card,
+              { opacity: 0, y: fromY },
+              { opacity: 1, y: 0, duration: 0.6, ease: 'back.out(1.5)' }
+            );
+            nodeEl.style.opacity = "1"; nodeEl.style.transform = "translate(-50%, -50%) scale(1)";
+            if (connectorLine) connectorLine.style.opacity = "1";
+            gsap.fromTo(pulseEl, { scale: 1, opacity: 1 }, { scale: 4.5, opacity: 0, duration: 0.75, ease: 'power2.out', overwrite: 'auto' });
+          }
+          nodeEl.classList.add('lit');
+        } else {
+          if (card._revealed) {
+            card._revealed = false;
+            gsap.to(card, { opacity: 0, y: fromY, duration: 0.4, ease: 'power2.in' });
+            nodeEl.style.opacity = "0"; nodeEl.style.transform = "translate(-50%, -50%) scale(0)";
+            if (connectorLine) connectorLine.style.opacity = "0";
+            gsap.killTweensOf(pulseEl); pulseEl.style.opacity = "0";
+          }
+          nodeEl.classList.remove('lit');
+        }
+      });
+    }
+  }
+});
+const pinST = trackRideTween.scrollTrigger;
+
+/* ══════════════════════════════════════════════════════════════
+   Mobile paginated swipe navigation — ports index.html's
+   document-level touch-pagination controller so the WHOLE page
+   (hero → each era card → outro → manifesto → methodology →
+   stackless → human-first) advances one swipe at a time on mobile,
+   exactly like the home page. Earlier version of this left the
+   pinned hero/timeline scrub section un-paginated (continuous drag
+   only); per feedback that read as "just scrolling", not swiping
+   like the home page — so the pin range is now broken into a stop
+   per era card too. Each stop is computed from the same progress
+   math the pin's own onUpdate already uses (targetTriggerX / section
+   width, mapped back to an absolute scrollY through pinST.start/end),
+   so a swipe's smooth window.scrollTo() animates straight through
+   that card's reveal exactly as if the user had dragged there by hand.
+   Same axis-lock dead-zone as index.html's fix: a touch is only ever
+   classified once, after AXIS_LOCK_PX of movement, so a horizontal
+   drag on the stackless/three-tier mobile carousels never gets its
+   native scroll silently cancelled by an early preventDefault()
+   before the axis is known.
+   ══════════════════════════════════════════════════════════════ */
+(function(){
+  const MOBILE_BP = 768;
+  const HOLD_MS = 900;
+  const SWIPE_THRESHOLD = 24;
+  const EPS = 4;
+  const AXIS_LOCK_PX = 6;
+
+  let listening = false;
+  let tracking = false;
+  let locked = false;
+  let startY = 0, startX = 0;
+  let axisDecided = false, isHorizontal = false;
+
+  function isMobileWidth(){ return window.innerWidth < MOBILE_BP; }
+
+  /* Where in the pin's 0–1 scrub does this era card sit dead-center in the
+     viewport? (Not the same as the progress that first fades it in — that
+     threshold fires the instant the card's left edge enters view, so
+     landing a swipe there leaves it hugging one side of the screen with a
+     big dead gap on the other, which is the half-empty layout reported
+     back. Solving for "card center == viewport center" instead lands each
+     swipe on a properly composed frame, the same as the reveal threshold
+     used by the onUpdate handler above but aimed at the card's midpoint
+     rather than its leading edge.) */
+  function eraCardStopProgress(card, range){
+    const heroEl = document.getElementById('hero');
+    if(!heroEl || !card || !(range > 0)) return null;
+    const cardCenterInTrack = heroEl.offsetWidth + card.offsetLeft + card.offsetWidth / 2;
+    const viewportCenter = window.innerWidth / 2;
+    return Math.min(1, Math.max(0, (cardCenterInTrack - viewportCenter) / range));
+  }
+
+  function getPaginationStops(){
+    const stops = [0];
+    if(pinST && pinST.end > pinST.start){
+      const range = pinST.end - pinST.start;
+      [1, 2, 3, 4].forEach(id => {
+        const card = document.getElementById('card-' + id);
+        const progress = eraCardStopProgress(card, range);
+        if(progress !== null) stops.push(pinST.start + progress * range);
+      });
+      stops.push(pinST.end);
+    }
+    ['#outro', '#manifesto-section', '#methodology-section', '#stackless-section', '#human-first-section']
+      .forEach(sel => {
+        const el = document.querySelector(sel);
+        if(el) stops.push(el.offsetTop);
+      });
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    if(maxScroll > 0) stops.push(maxScroll);
+    return Array.from(new Set(stops.map(v => Math.round(v)))).sort((a,b) => a - b);
+  }
+
+  function onTouchStart(e){
+    if(e.touches.length !== 1) return;
+    tracking = true;
+    axisDecided = false;
+    isHorizontal = false;
+    startY = e.touches[0].clientY;
+    startX = e.touches[0].clientX;
+  }
+  function onTouchMove(e){
+    if(!tracking) return;
+    if(!axisDecided){
+      const t = e.touches[0];
+      const dx = t.clientX - startX, dy = t.clientY - startY;
+      if(Math.abs(dx) > AXIS_LOCK_PX || Math.abs(dy) > AXIS_LOCK_PX){
+        axisDecided = true;
+        isHorizontal = Math.abs(dx) > Math.abs(dy);
+      } else {
+        return; // dead-zone: don't preventDefault before the axis is known
+      }
+    }
+    if(isHorizontal) return; // native horizontal card-carousel scroll owns this
+    e.preventDefault(); // this controller owns vertical scrolling on mobile, everywhere on the page
+  }
+  function onTouchEnd(e){
+    if(!tracking) return;
+    tracking = false;
+    if(isHorizontal) return;
+    if(locked) return;
+    const touch = e.changedTouches && e.changedTouches[0];
+    const endY = touch ? touch.clientY : startY;
+    const dy = startY - endY;
+    if(Math.abs(dy) < SWIPE_THRESHOLD) return;
+
+    const stops = getPaginationStops();
+    const curY = window.scrollY;
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    let target;
+    if(dy > 0){
+      target = stops.find(s => s > curY + EPS);
+    } else {
+      const before = stops.filter(s => s < curY - EPS);
+      target = before.length ? before[before.length - 1] : undefined;
+    }
+    /* Landmark stops come from live layout reads (offsetTop/offsetLeft) that
+       can be thrown off by a mid-gesture reflow (address-bar show/hide,
+       a ScrollTrigger.refresh() firing between the swipe starting and
+       ending, etc.) — if that ever makes every computed stop land at or
+       behind the current position, a deliberate swipe would otherwise do
+       nothing and the page would feel stuck. Falling back to a plain
+       one-viewport nudge in the swiped direction guarantees a swipe is
+       never a dead end, even if the "jump to the next landmark" math
+       misfires for this one gesture. */
+    if(target === undefined){
+      target = dy > 0 ? curY + window.innerHeight : curY - window.innerHeight;
+      target = Math.max(0, Math.min(maxScroll, target));
+      if(Math.abs(target - curY) < EPS) return; // genuinely already at the top/bottom
+    }
+
+    locked = true;
+    window.scrollTo({ top: target, behavior: 'smooth' });
+    setTimeout(() => { locked = false; }, HOLD_MS);
+  }
+
+  function enable(){
+    if(listening) return;
+    listening = true;
+    /* ScrollTrigger.normalizeScroll(true) is switched on globally further up
+       this script — it's GSAP's own touch-scroll takeover, meant to smooth
+       out mobile Safari/Chrome quirks for pinned/scrubbed sections. It runs
+       its own touchstart/touchmove handling and keeps its own internal
+       scroll-position proxy instead of driving plain window.scrollY, which
+       was the actual reason nothing here worked: two independent systems
+       were both fighting to own touchmove, and window.scrollTo() calls from
+       this controller weren't reliably syncing with normalizeScroll's own
+       state. Turning normalizeScroll off for as long as this controller is
+       the one driving touch (i.e. on mobile) removes that conflict outright
+       instead of trying to patch around it. */
+    if(window.ScrollTrigger && ScrollTrigger.normalizeScroll) ScrollTrigger.normalizeScroll(false);
+    document.addEventListener('touchstart', onTouchStart, { passive:true });
+    document.addEventListener('touchmove', onTouchMove, { passive:false });
+    document.addEventListener('touchend', onTouchEnd, { passive:true });
+    document.addEventListener('touchcancel', onTouchEnd, { passive:true });
+  }
+  function disable(){
+    if(!listening) return;
+    listening = false;
+    tracking = false; locked = false;
+    if(window.ScrollTrigger && ScrollTrigger.normalizeScroll) ScrollTrigger.normalizeScroll(true);
+    document.removeEventListener('touchstart', onTouchStart);
+    document.removeEventListener('touchmove', onTouchMove);
+    document.removeEventListener('touchend', onTouchEnd);
+    document.removeEventListener('touchcancel', onTouchEnd);
+  }
+  function syncForWidth(){
+    if(isMobileWidth()) enable(); else disable();
+  }
+  syncForWidth();
+  window.addEventListener('resize', syncForWidth);
+})();
+
+(function() {
+  const subtitle = document.querySelector('.hero-subtitle');
+  if (!subtitle) return;
+  const text = subtitle.innerText;
+  const words = text.split(' ');
+  subtitle.innerHTML = words.map(w => `<span class="char">${w}</span>`).join(' ');
+})();
+
+gsap.timeline({ defaults:{ ease:'power3.out' } })
+  .to('.origin-label', { opacity:1, duration:0.7, delay:0.4 })
+  .to('.about-hero-title',   { opacity:1, y:0, duration:1.0 }, '-=0.25')
+  .to('.hero-subtitle', { opacity:1, duration:0 }, '-=0.1')
+  .to('.hero-subtitle .char', {
+    opacity: 1,
+    y: 0,
+    duration: 0.5,
+    stagger: 0.03,
+    ease: 'power2.out'
+  }, '-=0.0');
+
+(function () {
+  const indicator = document.getElementById('scroll-indicator');
+  if (!indicator) return;
+
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 40) {
+      indicator.classList.add('hidden');
+    } else {
+      indicator.classList.remove('hidden');
+    }
+  }, { passive: true });
+
+  indicator.addEventListener('click', () => {
+    gsap.to(window, {
+      scrollTo: { y: window.innerHeight },
+      duration: 1.4,
+      ease: 'expo.inOut'
+    });
+  });
+})();
+
+(function() {
+  const hamburger    = document.getElementById('hamburger');
+  const mobileMenu   = document.getElementById('mobile-menu');
+  const closeMenuBtn = document.getElementById('close-menu');
+  if (!hamburger || !mobileMenu || !closeMenuBtn) return;
+
+  const mobileLinks = mobileMenu.querySelectorAll('a');
+
+  hamburger.addEventListener('click', () => {
+    hamburger.classList.add('active');
+    mobileMenu.classList.add('active');
+    document.body.classList.add('menu-open');
+  });
+
+  const closeMenu = () => {
+    hamburger.classList.remove('active');
+    mobileMenu.classList.remove('active');
+    document.body.classList.remove('menu-open');
+  };
+
+  closeMenuBtn.addEventListener('click', closeMenu);
+  mobileLinks.forEach(link => link.addEventListener('click', closeMenu));
+})();
+
+(function() {
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/_+";
+
+  function initGlitchButtons() {
+    document.querySelectorAll('.contact-neural').forEach(btn => {
+      btn.onmouseover = event => {
+        let iteration = 0;
+        const targetBtn = event.currentTarget;
+        const originalText = targetBtn.dataset.value;
+        if (!originalText) return;
+        const textSpan = targetBtn.querySelector('.neural-text') || targetBtn.querySelector('span');
+        if (!textSpan) return;
+        const interval = setInterval(() => {
+          textSpan.innerText = originalText
+            .split("")
+            .map((letter, index) => {
+              if (index < iteration) return originalText[index];
+              return letters[Math.floor(Math.random() * 39)];
+            })
+            .join("");
+          if (iteration >= originalText.length) clearInterval(interval);
+          iteration += 1 / 3;
+        }, 30);
+      };
+    });
+  }
+  initGlitchButtons();
+})();
+
+(function () {
+
+  const tl = gsap.timeline({
+    scrollTrigger: {
+      trigger: '#manifesto-section',
+      start: 'top 75%',
+      toggleActions: 'play none none none'
+    }
+  });
+
+  tl.to('.manifesto-title', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' })
+    .to('.manifesto-body p', {
+      opacity: 1, y: 0, duration: 0.6,
+      stagger: 0.18, ease: 'power2.out'
+    }, '-=0.3')
+    .to('.manifesto-quote', { opacity: 1, y: 0, duration: 0.7, ease: 'power2.out' }, '-=0.2')
+    .to('.manifesto-revenue', { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, '-=0.1')
+    .to('.manifesto-unfair', { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, '-=0.2')
+    .to('.vm-title', { opacity: 1, y: 0, duration: 0.6, stagger: 0.2, ease: 'power2.out' }, '-=0.5')
+    .to('.vm-list li', { opacity: 1, y: 0, duration: 0.5, stagger: 0.12, ease: 'power2.out' }, '-=0.3');
+
+  const mtl = gsap.timeline({
+    scrollTrigger: {
+      trigger: '#methodology-section',
+      start: 'top 80%',
+      toggleActions: 'play none none none'
+    }
+  });
+  mtl.to('.methodology-label', { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' })
+     .to('.methodology-heading', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, '-=0.3')
+     .to('.methodology-item', { opacity: 1, y: 0, duration: 0.5, stagger: 0.1, ease: 'power2.out' }, '-=0.2')
+     .to('.three-tier-panel', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.8');
+
+  const stl = gsap.timeline({
+    scrollTrigger: {
+      trigger: '#stackless-section',
+      start: 'top 80%',
+      toggleActions: 'play none none none'
+    }
+  });
+  stl.to('.stackless-header',       { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' })
+     .to('.stackless-subtitle-row',  { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, '-=0.3')
+     .to('.stackless-bridge',        { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, '-=0.2')
+     .to('.stackless-card', {
+       opacity: 1, y: 0, duration: 0.45,
+       stagger: { amount: 0.6, from: 'start' },
+       ease: 'power2.out'
+     }, '-=0.1');
+
+})();
+
+(function () {
+
+  gsap.timeline({
+    scrollTrigger: { trigger: '#outro', start: 'top 82%', toggleActions: 'play none none none' }
+  })
+  .to('.outro-logo',  { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' })
+  .to('.outro-block', { opacity: 1, y: 0, duration: 0.65, stagger: 0.2, ease: 'power2.out' }, '-=0.4')
+  .to('.stateless-banner', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.2');
+
+  gsap.timeline({
+    scrollTrigger: { trigger: '.veracity-section', start: 'top 80%', toggleActions: 'play none none none' }
+  })
+  .to('.veracity-title', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' })
+  .to('.veracity-intro', { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, '-=0.4')
+  .to('.veracity-row',   { opacity: 1, x: 0, duration: 0.5, stagger: 0.12, ease: 'power2.out' }, '-=0.2')
+  .to('.veracity-right', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.6');
+
+  gsap.set('.methodology-label', { clipPath: 'inset(0 100% 0 0)' });
+  ScrollTrigger.create({
+    trigger: '#methodology-section',
+    start: 'top 78%',
+    once: true,
+    onEnter: () => {
+      gsap.to('.methodology-label', {
+        clipPath: 'inset(0 0% 0 0)', opacity: 1, y: 0,
+        duration: 0.6, ease: 'power2.out'
+      });
+    }
+  });
+
+  gsap.set('.stackless-card:nth-child(odd)',  { x: -30 });
+  gsap.set('.stackless-card:nth-child(even)', { x:  30 });
+  ScrollTrigger.create({
+    trigger: '#stackless-section',
+    start: 'top 78%',
+    once: true,
+    onEnter: () => {
+      gsap.to('.stackless-card:nth-child(odd)',  {
+        opacity: 1, x: 0, y: 0, duration: 0.55,
+        stagger: { amount: 0.5, from: 'start' }, ease: 'power2.out'
+      });
+      gsap.to('.stackless-card:nth-child(even)', {
+        opacity: 1, x: 0, y: 0, duration: 0.55,
+        stagger: { amount: 0.5, from: 'start' }, ease: 'power2.out', delay: 0.08
+      });
+    }
+  });
+
+  gsap.set('.hf-left',  { x: -40 });
+  gsap.set('.hf-right', { scale: 0.92 });
+  ScrollTrigger.create({
+    trigger: '#human-first-section',
+    start: 'top 78%',
+    once: true,
+    onEnter: () => {
+      gsap.to('.hf-left',  { opacity: 1, x: 0, y: 0, duration: 0.75, ease: 'power3.out' });
+      gsap.to('.hf-right', { opacity: 1, scale: 1, y: 0, duration: 0.75, ease: 'power3.out', delay: 0.15 });
+    }
+  });
+
+  document.querySelectorAll('.stackless-divider').forEach(el => {
+    gsap.set(el, { scaleX: 0, transformOrigin: 'left center' });
+    ScrollTrigger.create({
+      trigger: el,
+      start: 'top 88%',
+      once: true,
+      onEnter: () => gsap.to(el, { scaleX: 1, duration: 0.8, ease: 'power3.out' })
+    });
+  });
+
+  /* ── Three-tier cards: staggered pop-in with number flip ── */
+  gsap.set('.three-tier-card', { opacity: 0, y: 40, scale: 0.92 });
+  gsap.set('.three-tier-card-num', { opacity: 0, y: -10 });
+  ScrollTrigger.create({
+    trigger: '.three-tier-cards',
+    start: 'top 82%',
+    once: true,
+    onEnter: () => {
+      gsap.to('.three-tier-card', {
+        opacity: 1, y: 0, scale: 1, duration: 0.65,
+        stagger: 0.18, ease: 'back.out(1.6)'
+      });
+      gsap.to('.three-tier-card-num', {
+        opacity: 1, y: 0, duration: 0.5,
+        stagger: 0.18, delay: 0.15, ease: 'power2.out'
+      });
+    }
+  });
+
+  /* ── Manifesto quote: clip-path reveal like a highlighter sweep ── */
+  gsap.set('.manifesto-quote', { clipPath: 'inset(0 100% 0 0)' });
+  ScrollTrigger.create({
+    trigger: '.manifesto-quote',
+    start: 'top 85%',
+    once: true,
+    onEnter: () => {
+      gsap.to('.manifesto-quote', {
+        clipPath: 'inset(0 0% 0 0)', duration: 0.9, ease: 'power3.inOut'
+      });
+    }
+  });
+
+  /* ── Human-first quote: fade + letter spacing pull-in ── */
+  gsap.set('.hf-quote', { opacity: 0, letterSpacing: '0.15em' });
+  ScrollTrigger.create({
+    trigger: '.hf-quote',
+    start: 'top 88%',
+    once: true,
+    onEnter: () => {
+      gsap.to('.hf-quote', {
+        opacity: 1, letterSpacing: '0.01em', duration: 1, ease: 'power3.out'
+      });
+    }
+  });
+
+  /* ── Outro logo: scale + rotate in ── */
+  gsap.set('.outro-logo', { scale: 0.85, rotate: -4 });
+  ScrollTrigger.create({
+    trigger: '.outro-logo',
+    start: 'top 85%',
+    once: true,
+    onEnter: () => {
+      gsap.to('.outro-logo', {
+        scale: 1, rotate: 0, duration: 0.9, ease: 'elastic.out(1, 0.55)'
+      });
+    }
+  });
+
+  /* ── Veracity table rows: glow pulse on the highlighted row ── */
+  ScrollTrigger.create({
+    trigger: '.veracity-row--highlight',
+    start: 'top 85%',
+    once: true,
+    onEnter: () => {
+      gsap.fromTo('.veracity-row--highlight',
+        { boxShadow: '0 0 0 rgba(244,161,53,0)' },
+        { boxShadow: '0 0 30px rgba(244,161,53,0.25)', duration: 1.2, ease: 'power2.out', delay: 0.6 }
+      );
+    }
+  });
+
+  /* ── Stackless card numbers: count-style scale pulse on enter ── */
+  gsap.set('.stackless-card-num', { opacity: 0, scale: 0.5 });
+  ScrollTrigger.create({
+    trigger: '#stackless-section',
+    start: 'top 78%',
+    once: true,
+    onEnter: () => {
+      gsap.to('.stackless-card-num', {
+        opacity: 1, scale: 1, duration: 0.5,
+        stagger: { amount: 0.7, from: 'start' }, ease: 'back.out(2.5)', delay: 0.2
+      });
+    }
+  });
+
+  /* ── Human-first label tag — slide + fade ── */
+  gsap.set('.hf-label', { opacity: 0, x: -15 });
+  document.querySelectorAll('.hf-label').forEach(el => {
+    ScrollTrigger.create({
+      trigger: el,
+      start: 'top 88%',
+      once: true,
+      onEnter: () => gsap.to(el, { opacity: 1, x: 0, duration: 0.6, ease: 'power2.out' })
+    });
+  });
+
+})();
+
+/* ══════════════════════════════════════════════════════════════
+   Ambient dust — a second, much subtler generative particle layer,
+   independent of the real background/star canvas and the dna-canvas
+   helix. Fades in specifically while scrolling through the veracity /
+   methodology / stackless sections so those flat text sections still
+   feel alive, without touching any existing content or layout.
+   ══════════════════════════════════════════════════════════════ */
+(function () {
+  const canvas = document.getElementById('ambient-dust-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function resize() { canvas.width = innerWidth; canvas.height = innerHeight; }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const COLORS = ['rgba(168,85,247,', 'rgba(200,150,255,', 'rgba(120,60,220,', 'rgba(255,255,255,'];
+  const N = 70;
+  const drift = reducedMotion ? 0 : 1;
+  const dust = Array.from({ length: N }, () => ({
+    x: Math.random(), y: Math.random(),
+    vx: (Math.random() - 0.5) * 0.00035 * drift,
+    vy: ((Math.random() - 0.5) * 0.00035 - 0.00012) * drift,
+    r: 0.6 + Math.random() * 1.6,
+    a: 0.25 + Math.random() * 0.55,
+    col: COLORS[Math.floor(Math.random() * COLORS.length)]
+  }));
+
+  let mouseX = 0.5, mouseY = 0.5;
+  if (!reducedMotion) {
+    window.addEventListener('pointermove', e => {
+      mouseX = e.clientX / innerWidth; mouseY = e.clientY / innerHeight;
+    });
+  }
+
+  function draw() {
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+    dust.forEach(p => {
+      p.x += p.vx + (mouseX - 0.5) * 0.00004 * drift;
+      p.y += p.vy + (mouseY - 0.5) * 0.00004 * drift;
+      if (p.x < -0.05) p.x = 1.05;
+      if (p.x > 1.05) p.x = -0.05;
+      if (p.y < -0.05) p.y = 1.05;
+      if (p.y > 1.05) p.y = -0.05;
+      ctx.beginPath();
+      ctx.arc(p.x * W, p.y * H, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = p.col + p.a + ')';
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+
+  let activeCount = 0;
+  function setVisible(on) {
+    const wasActive = activeCount > 0;
+    activeCount += on ? 1 : -1;
+    if (activeCount < 0) activeCount = 0;
+    const isActive = activeCount > 0;
+    if (isActive !== wasActive) {
+      gsap.to(canvas, { opacity: isActive ? 0.9 : 0, duration: 0.9, ease: 'power2.out' });
+    }
+  }
+  ['.veracity-section', '#methodology-section', '#stackless-section'].forEach(sel => {
+    const el = document.querySelector(sel);
+    if (!el) return;
+    ScrollTrigger.create({
+      trigger: el, start: 'top 85%', end: 'bottom 15%',
+      onEnter: () => setVisible(true), onLeave: () => setVisible(false),
+      onEnterBack: () => setVisible(true), onLeaveBack: () => setVisible(false)
+    });
+  });
+})();
+
+/* ══════════════════════════════════════════════════════════════
+   Scroll-linked 3D card depth — the existing stackless / three-tier /
+   veracity cards already fade in once via the reveal IIFE above; this
+   layers a continuous scroll-scrubbed 3D tilt on top (rotateX/rotateY/z),
+   so they visibly settle into place with real depth as they cross the
+   viewport, instead of only fading in flat. Purely additive: it doesn't
+   touch the existing opacity/x/y reveal logic.
+   ══════════════════════════════════════════════════════════════ */
+(function () {
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reducedMotion) return;
+
+  /* .stackless-card and .three-tier-card are now plain full-width vertical
+     stacks on mobile (per request) — this scrub-linked rotateY tilt was
+     designed for a wider desktop layout, where a card mid-tilt just looks
+     like a subtle 3D lean. In a single narrow mobile column, a card that
+     hasn't finished its own tilt yet (its trigger runs individually per
+     card, from when its top hits 95% of the viewport to 55%) visibly
+     leans out of line with the cards above it that have already settled
+     flat — exactly the "not aligned" cards reported back, not a real
+     layout bug. .veracity-row keeps the effect since it wasn't reported
+     as an issue and isn't a plain full-width stack on mobile. */
+  const isMobile = window.innerWidth < 768;
+  ['.stackless-card', '.three-tier-card', '.veracity-row'].forEach(sel => {
+    if (isMobile && (sel === '.stackless-card' || sel === '.three-tier-card')) return;
+    document.querySelectorAll(sel).forEach((card, i) => {
+      const fromLeft = i % 2 === 0;
+      gsap.fromTo(card,
+        { rotateX: 10, rotateY: fromLeft ? -8 : 8, z: -40 },
+        {
+          rotateX: 0, rotateY: 0, z: 0, ease: 'none',
+          scrollTrigger: { trigger: card, start: 'top 95%', end: 'top 55%', scrub: 0.6 }
+        }
+      );
+    });
+  });
+})();
+
+/* ══════════════════════════════════════════════════════════════
+   Kinetic section headings — a scroll-scrubbed clip-path + blur sweep
+   layered on top of each section's existing fade-in, so the heading
+   itself feels like it's being drawn into focus as you scroll past it
+   rather than appearing in one single fade.
+   ══════════════════════════════════════════════════════════════ */
+(function () {
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reducedMotion) return;
+
+  ['.manifesto-title', '.methodology-heading', '.stackless-title', '.veracity-title'].forEach(sel => {
+    const el = document.querySelector(sel);
+    if (!el) return;
+    gsap.set(el, { clipPath: 'inset(0 100% 0 0)', filter: 'blur(6px)' });
+    gsap.to(el, {
+      clipPath: 'inset(0 0% 0 0)', filter: 'blur(0px)', ease: 'none',
+      scrollTrigger: { trigger: el, start: 'top 90%', end: 'top 55%', scrub: 0.5 }
+    });
+  });
+})();
+
+(function () {
+  const canvas = document.getElementById('dna-canvas');
+  if (!canvas) return;
+
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const hasFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+  camera.position.set(0, 0, 13);
+
+  function resize() {
+    /* Was sizing the renderer/camera off #manifesto-section's own height —
+       on mobile that section stacks into one tall column full of paragraph
+       text (often 1500px+), while #dna-canvas itself is CSS-capped much
+       shorter. Feeding that mismatched, way-too-tall height into
+       camera.aspect made the horizontal field of view absurdly narrow,
+       so the helix rendered as a stretched, unrecognizable diagonal smear
+       instead of a helix. Measuring the canvas's own actual displayed box
+       keeps the aspect ratio (and therefore the shape) correct no matter
+       how tall the surrounding text column gets. */
+    const w = canvas.offsetWidth || 560;
+    const h = canvas.offsetHeight || 480;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+
+  // Two glowing strands wound into a real 3D double helix (actual depth via
+  // a perspective camera, not a faked sin() offset). Reworked per reference
+  // to read as a thick, dense braided rope rather than a sparse dotted
+  // wire: far more points per strand, scattered with a small radial jitter
+  // (THICKNESS) so each strand has visible body instead of being a single
+  // point-wide line, plus bright white/lilac bursts at every crossing so
+  // the two strands visibly weave over each other like the reference.
+  const STRAND_N = 900;
+  const HEIGHT = 12;
+  const RADIUS = 2.3;
+  const TURNS = 3.4;
+  const THICKNESS = 0.2;
+  const purpleDeep = new THREE.Color(0x6d28d9);
+  const purpleLight = new THREE.Color(0xf3e8ff);
+
+  /* tint biases this strand's color mix toward purpleLight — the two
+     strands otherwise share one gradient and blur into a single mass
+     where they cross, instead of reading as two distinct interwoven
+     ropes. A tighter THICKNESS (was 0.34) also keeps each strand a clean
+     rope rather than a blobby cluster. */
+  function buildStrand(phaseOffset, tint) {
+    const positions = new Float32Array(STRAND_N * 3);
+    const colors = new Float32Array(STRAND_N * 3);
+    for (let i = 0; i < STRAND_N; i++) {
+      const t = i / (STRAND_N - 1);
+      const angle = t * Math.PI * 2 * TURNS + phaseOffset;
+      const jitter = (Math.random() - 0.5) * THICKNESS;
+      positions[i * 3]     = Math.cos(angle) * (RADIUS + jitter);
+      positions[i * 3 + 1] = (t - 0.5) * HEIGHT + (Math.random() - 0.5) * THICKNESS * 0.8;
+      positions[i * 3 + 2] = Math.sin(angle) * (RADIUS + jitter);
+      const col = purpleDeep.clone().lerp(purpleLight, Math.min(1, Math.random() * 0.65 + tint));
+      colors[i * 3] = col.r; colors[i * 3 + 1] = col.g; colors[i * 3 + 2] = col.b;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    const mat = new THREE.PointsMaterial({
+      size: 0.06, vertexColors: true, transparent: true, opacity: 0.95,
+      blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true
+    });
+    return new THREE.Points(geo, mat);
+  }
+
+  const helixGroup = new THREE.Group();
+  helixGroup.add(buildStrand(0, 0), buildStrand(Math.PI, 0.3));
+  scene.add(helixGroup);
+
+  // Rungs connecting the two strands (base pairs), now bright and visible
+  // rather than a faint 0.16-opacity line, plus a small burst of near-white
+  // points at every crossing to read as a glowing "X" where the strands
+  // weave — the signature look from the reference.
+  const RUNG_N = 46;
+  const rungPositions = new Float32Array(RUNG_N * 2 * 3);
+  const crossPositions = [];
+  const crossColors = [];
+  const white = new THREE.Color(0xffffff);
+  const lilac = new THREE.Color(0xd9b8ff);
+  for (let i = 0; i < RUNG_N; i++) {
+    const t = i / (RUNG_N - 1);
+    const angle = t * Math.PI * 2 * TURNS;
+    const y = (t - 0.5) * HEIGHT;
+    rungPositions[i * 6]     = Math.cos(angle) * RADIUS;
+    rungPositions[i * 6 + 1] = y;
+    rungPositions[i * 6 + 2] = Math.sin(angle) * RADIUS;
+    rungPositions[i * 6 + 3] = Math.cos(angle + Math.PI) * RADIUS;
+    rungPositions[i * 6 + 4] = y;
+    rungPositions[i * 6 + 5] = Math.sin(angle + Math.PI) * RADIUS;
+
+    for (let k = 0; k < 8; k++) {
+      crossPositions.push(
+        (Math.random() - 0.5) * 0.55,
+        y + (Math.random() - 0.5) * 0.55,
+        (Math.random() - 0.5) * 0.55
+      );
+      const c = white.clone().lerp(lilac, Math.random());
+      crossColors.push(c.r, c.g, c.b);
+    }
+  }
+  const rungGeo = new THREE.BufferGeometry();
+  rungGeo.setAttribute('position', new THREE.BufferAttribute(rungPositions, 3));
+  helixGroup.add(new THREE.LineSegments(rungGeo, new THREE.LineBasicMaterial({ color: 0xa855f7, transparent: true, opacity: 0.45 })));
+
+  const crossGeo = new THREE.BufferGeometry();
+  crossGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(crossPositions), 3));
+  crossGeo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(crossColors), 3));
+  helixGroup.add(new THREE.Points(crossGeo, new THREE.PointsMaterial({
+    size: 0.07, vertexColors: true, transparent: true, opacity: 0.9,
+    blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true
+  })));
+
+  // Ambient dust around the helix for depth.
+  const DUST_N = 220;
+  const dustPos = new Float32Array(DUST_N * 3);
+  for (let i = 0; i < DUST_N; i++) {
+    dustPos[i * 3] = (Math.random() - 0.5) * 9;
+    dustPos[i * 3 + 1] = (Math.random() - 0.5) * HEIGHT * 1.3;
+    dustPos[i * 3 + 2] = (Math.random() - 0.5) * 9;
+  }
+  const dustGeo = new THREE.BufferGeometry();
+  dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+  const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({
+    color: 0xc89bff, size: 0.03, transparent: true, opacity: 0.22,
+    blending: THREE.AdditiveBlending, depthWrite: false
+  }));
+  scene.add(dust);
+
+  resize();
+  window.addEventListener('resize', resize);
+
+  let mouseX = 0, mouseY = 0;
+  if (hasFinePointer) {
+    window.addEventListener('pointermove', e => {
+      mouseX = (e.clientX / innerWidth) - 0.5;
+      mouseY = (e.clientY / innerHeight) - 0.5;
+    });
+  }
+
+  const clock = new THREE.Clock();
+  (function loop() {
+    requestAnimationFrame(loop);
+    const t = clock.getElapsedTime();
+    if (!reducedMotion) helixGroup.rotation.y = t * 0.18;
+    helixGroup.rotation.x = mouseY * 0.22;
+    camera.position.x = mouseX * 1.1;
+    camera.lookAt(0, 0, 0);
+    dust.rotation.y = t * 0.05;
+    renderer.render(scene, camera);
+  })();
+
+  /* Per request: the wave-terrain background (#bg-canvas) should duck out
+     of the way whenever the DNA helix is on screen, and come back once the
+     helix is scrolled past in either direction — otherwise the two purple
+     dot patterns compete visually. Tied to the exact same enter/leave
+     events that already show/hide the helix, just inverted, so the two
+     stay perfectly in sync. #bg-canvas already carries a CSS
+     transition:opacity rule, so setting .style.opacity directly animates
+     smoothly on its own. */
+  const waveCanvas = document.getElementById('bg-canvas');
+  function hideWave(){ if (waveCanvas) waveCanvas.style.opacity = '0'; }
+  function showWave(){ if (waveCanvas) waveCanvas.style.opacity = ''; }
+
+  ScrollTrigger.create({
+    trigger: '#manifesto-section',
+    start: 'top 70%',
+    onEnter:     () => { canvas.classList.add('visible'); hideWave(); },
+    onLeaveBack: () => { canvas.classList.remove('visible'); showWave(); }
+  });
+  ScrollTrigger.create({
+    trigger: '#manifesto-section',
+    start: 'bottom bottom',
+    onEnter:     () => { canvas.classList.remove('visible'); showWave(); },
+    onLeaveBack: () => { canvas.classList.add('visible'); hideWave(); }
+  });
+})();
+
+(function () {
+  const canvas = document.getElementById('circuit-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  function resize() {
+    canvas.width  = canvas.offsetWidth  || 340;
+    canvas.height = canvas.offsetHeight || 480;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  let time = 0;
+
+  const DOTS = [
+    { x: 0.155, y: 0.455, color: '#a855f7' },
+    { x: 0.845, y: 0.455, color: '#22d3ee' },
+    { x: 0.155, y: 0.700, color: '#f43f5e' },
+    { x: 0.845, y: 0.700, color: '#ec4899' },
+    { x: 0.500, y: 0.870, color: '#7c3aed' },
+  ];
+
+  function drawDot(px, py, color) {
+    const g = ctx.createRadialGradient(px, py, 0, px, py, 10);
+    g.addColorStop(0,   color);
+    g.addColorStop(0.5, color + '55');
+    g.addColorStop(1,   color + '00');
+    ctx.beginPath(); ctx.arc(px, py, 10, 0, Math.PI*2);
+    ctx.fillStyle = g; ctx.fill();
+    ctx.beginPath(); ctx.arc(px, py, 3, 0, Math.PI*2);
+    ctx.fillStyle = color; ctx.fill();
+  }
+
+  function ln(x1,y1,x2,y2,col,lw,dash=[]) {
+    ctx.save();
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2);
+    ctx.strokeStyle=col; ctx.lineWidth=lw; ctx.setLineDash(dash);
+    ctx.stroke(); ctx.restore();
+  }
+
+  function draw() {
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    const cx      = W * 0.500;   // center x of everything
+    const ov_cy   = H * 0.190;   // oval center y
+    const ov_rx   = W * 0.160;   // oval half-width
+    const ov_ry   = H * 0.140;   // oval half-height (taller)
+
+    const cross_y = H * 0.455;   // crossbar y
+    const semi_cy = H * 0.670;   // semicircle center y
+    const semi_r  = W * 0.120;   // semicircle radius
+
+    const lx      = W * 0.155;   // left vertical rail x
+    const rx      = W * 0.845;   // right vertical rail x
+
+    const brk_top_y   = H * 0.095;
+    const brk_top_in  = W * 0.090;  // how far inward the L goes
+
+    const brk_bot_y   = H * 0.765;
+    const brk_bot_in  = W * 0.090;
+
+    const mr1_x = W * 0.735, mr1_y = H * 0.095, mr1_w = W * 0.110, mr1_h = H * 0.095;
+    const mr2_x = W * 0.735, mr2_y = H * 0.560, mr2_w = W * 0.110, mr2_h = H * 0.090;
+
+    const bright = 'rgba(160,80,240,0.70)';   // bright purple for oval + semicircle + stem
+    const mid    = 'rgba(130,65,220,0.50)';   // mid for crossbar + main rails
+    const dim    = 'rgba(100,55,200,0.28)';   // dim for brackets + rects + dashes
+    const lw     = 1.5;
+    const lwd    = 1.1;
+
+    ctx.beginPath();
+    ctx.ellipse(cx, ov_cy, ov_rx, ov_ry, 0, 0, Math.PI*2);
+    ctx.strokeStyle = bright;
+    ctx.lineWidth = 1.7;
+    ctx.stroke();
+
+    ln(cx, ov_cy + ov_ry, cx, semi_cy - semi_r, bright, lw);
+
+    ln(lx, cross_y, rx, cross_y, mid, lw);
+
+    ln(lx, cross_y,   lx, brk_top_y,          dim, lwd);  // up
+    ln(lx, brk_top_y, lx + brk_top_in, brk_top_y, dim, lwd); // turn right
+
+    ln(rx, cross_y,   rx, brk_top_y,          dim, lwd);  // up
+    ln(rx, brk_top_y, rx - brk_top_in, brk_top_y, dim, lwd); // turn left
+
+    ln(lx, cross_y, lx, semi_cy, mid, lw);
+
+    ln(rx, cross_y, rx, semi_cy, mid, lw);
+
+    ln(lx, semi_cy,   lx, brk_bot_y,          dim, lwd);
+    ln(lx, brk_bot_y, lx + brk_bot_in, brk_bot_y, dim, lwd);
+
+    ln(rx, semi_cy,   rx, brk_bot_y,          dim, lwd);
+    ln(rx, brk_bot_y, rx - brk_bot_in, brk_bot_y, dim, lwd);
+
+    ctx.beginPath();
+    ctx.arc(cx, semi_cy, semi_r, 0, Math.PI, false); // 0→π = bottom half (cup opening UP)
+    ctx.strokeStyle = bright;
+    ctx.lineWidth = 1.7;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.rect(mr1_x, mr1_y, mr1_w, mr1_h);
+    ctx.strokeStyle = dim;
+    ctx.lineWidth = lwd;
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.rect(mr2_x, mr2_y, mr2_w, mr2_h);
+    ctx.strokeStyle = dim;
+    ctx.lineWidth = lwd;
+    ctx.stroke();
+
+    const d1x1 = cx + ov_rx * 0.80, d1y1 = ov_cy - ov_ry * 0.60;
+    ln(d1x1, d1y1, W * 0.88, H * 0.06, dim, 0.9, [3,5]);
+
+    const d2x1 = cx + ov_rx * 0.95, d2y1 = ov_cy - ov_ry * 0.10;
+    ln(d2x1, d2y1, W * 0.90, H * 0.13, dim, 0.9, [2,4]);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, H * 0.910, W * 0.13, 0, Math.PI, true);
+    ctx.strokeStyle = 'rgba(100,55,200,0.16)';
+    ctx.lineWidth = 0.9;
+    ctx.setLineDash([2, 6]);
+    ctx.stroke();
+    ctx.restore();
+
+    const pulseScale = 0.85 + 0.15 * Math.sin(time * 2.5);
+    DOTS.forEach(d => {
+      const g = ctx.createRadialGradient(d.x*W, d.y*H, 0, d.x*W, d.y*H, 12 * pulseScale);
+      g.addColorStop(0,   d.color);
+      g.addColorStop(0.4, d.color + '66');
+      g.addColorStop(1,   d.color + '00');
+      ctx.beginPath(); ctx.arc(d.x*W, d.y*H, 12 * pulseScale, 0, Math.PI*2);
+      ctx.fillStyle = g; ctx.fill();
+      ctx.beginPath(); ctx.arc(d.x*W, d.y*H, 3, 0, Math.PI*2);
+      ctx.fillStyle = d.color; ctx.fill();
+    });
+
+    time += 0.016;
+    requestAnimationFrame(draw);
+  }
+
+  draw();
+
+  gsap.timeline({
+    scrollTrigger: {
+      trigger: '#human-first-section',
+      start: 'top 78%',
+      toggleActions: 'play none none none'
+    }
+  })
+  .to('.hf-left',  { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' })
+  .to('.hf-right', { opacity: 1, y: 0, duration: 0.7, ease: 'power3.out' }, '-=0.4');
+})();
+</script>
+
+<script>
+(function () {
+  const canvas = document.getElementById('stateless-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  function resize() {
+    canvas.width  = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const NODE_COUNT = 38;
+  const nodes = [];
+
+  for (let i = 0; i < NODE_COUNT; i++) {
+    nodes.push({
+      x: Math.random(),
+      y: Math.random(),
+      vx: (Math.random() - 0.5) * 0.0004,
+      vy: (Math.random() - 0.5) * 0.0004,
+    });
+  }
+
+  const MAX_DIST = 0.28;
+
+  function draw() {
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    nodes.forEach(n => {
+      n.x += n.vx; n.y += n.vy;
+      if (n.x < 0 || n.x > 1) n.vx *= -1;
+      if (n.y < 0 || n.y > 1) n.vy *= -1;
+    });
+
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const dx = nodes[i].x - nodes[j].x;
+        const dy = nodes[i].y - nodes[j].y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        if (dist < MAX_DIST) {
+          const alpha = (1 - dist / MAX_DIST) * 0.35;
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x * W, nodes[i].y * H);
+          ctx.lineTo(nodes[j].x * W, nodes[j].y * H);
+          ctx.strokeStyle = `rgba(168,85,247,${alpha})`;
+          ctx.lineWidth = 0.8;
+          ctx.stroke();
+        }
+      }
+    }
+
+    nodes.forEach(n => {
+      ctx.beginPath();
+      ctx.arc(n.x * W, n.y * H, 1.5, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(200,120,255,0.5)';
+      ctx.fill();
+    });
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>
+
+<div class="creative-footer-reveal-container" id="site-footer">
+  <footer class="creative-tech-footer">
+    <div class="footer-top-glow-line"></div>
+
+    <div class="footer-grid-inner">
+      <div class="footer-brand-column">
+        <div class="footer-logo-wrap">
+          <canvas id="footer-logo-canvas"></canvas>
+          <img src="media/REVacity.png" alt="Revacity" style="width:180px; height:auto;" />
+        </div>
+        <p class="footer-brand-tagline" data-cms-slot="footerBrandTagline">
+          Observability platforms and autonomous orchestration frameworks for high-fidelity agentic systems.
+        </p>
+      </div>
+
+      <div class="footer-links-grid">
+        <div class="footer-link-group">
+            <h4 class="group-title">STRUCTURE</h4>
+            <a href="/en" target="_top" class="footer-link-item"><span class="link-num">01 //</span> The Collapse</a>
+            <a href="/en/about" target="_top" class="footer-link-item"><span class="link-num">02 //</span> About Us</a>
+            <a href="/en/our-architecture" target="_top" class="footer-link-item"><span class="link-num">03 //</span> Our Architecture</a>
+            <a href="/en/glossary" target="_top" class="footer-link-item"><span class="link-num">04 //</span> Glossary</a>
+        </div>
+
+        <div class="footer-link-group">
+            <h4 class="group-title">STRUCTURE</h4>
+            <a href="/en/before-judging-us" target="_top" class="footer-link-item"><span class="link-num">05 //</span> Before Judging</a>
+            <a href="/en/compare" target="_top" class="footer-link-item"><span class="link-num">06 //</span> Compare</a>
+            <a href="/en/blog" target="_top" class="footer-link-item"><span class="link-num">07 //</span>Blog</a>
+        </div>
+      </div>
+
+      <div class="footer-actions-column">
+        <h4 class="group-title">SYSTEM INTERACTION</h4>
+        <div class="footer-subscribe-wrapper">
+          <input type="email" placeholder="Enter operator email..." class="footer-input-field" />
+          <button type="button" class="footer-submit-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </button>
+        </div>
+       <div class="footer-meta-stamps">
+                     <div class="footer-socials-row">
+                    <a href="#" class="social-icon-btn" aria-label="LinkedIn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                            <rect x="2" y="9" width="4" height="12"></rect>
+                            <circle cx="4" cy="4" r="2"></circle>
+                        </svg>
+                    </a>
+                    <a href="#" class="social-icon-btn" aria-label="X (Twitter)">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 4l11.733 16h4.267l-11.733 -16z"></path>
+                            <path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"></path>
+                        </svg>
+                    </a>
+                    <a href="#" class="social-icon-btn" aria-label="Facebook">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                        </svg>
+                    </a>
+                    <a href="#" class="social-icon-btn" aria-label="Instagram">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                        </svg>
+                    </a>
+                </div>
+                </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom-bar">
+        <p class="copyright-text">&copy; 2026 REVACITY . ALL PROTOCOLS RESERVED.</p>
+        <div class="footer-legal-links">
+            <a href="#">PRIVACY DECREE</a>
+            <span class="divider">/</span>
+            <a href="#">TERMINAL TERMS</a>
+            <span class="divider">/</span>
+            <a href="#">SECURITY CLEARANCE</a>
+        </div>
+    </div>
+  </footer>
+</div>
+
+<script>
+
+(function () {
+
+  gsap.to('.creative-footer-reveal-container', {
+    scrollTrigger: {
+      trigger: '#site-footer',
+      start: 'top 95%',
+      end: 'bottom bottom',
+      toggleActions: 'play none none reverse'
+    },
+    opacity: 1,
+    filter: 'blur(0px)',
+    y: 0,
+    duration: 0.6,
+    ease: 'power2.out'
+  });
+
+  gsap.fromTo(
+    ['.footer-brand-column', '.footer-links-grid', '.footer-actions-column'],
+    { opacity: 0, y: 20, filter: 'blur(5px)' },
+    {
+      scrollTrigger: { trigger: '#site-footer', start: 'top 90%', toggleActions: 'play none none reverse' },
+      opacity: 1, y: 0, filter: 'blur(0px)',
+      duration: 0.5, stagger: 0.08, ease: 'power2.out'
+    }
+  );
+
+  /* ── Footer bookend: particles gather into the logo, once, mirroring
+     the hero's opening dust-settle so the page closes the way it opened ── */
+  const logoCanvas = document.getElementById('footer-logo-canvas');
+  const logoWrap = document.querySelector('.footer-logo-wrap');
+  if (logoCanvas && logoWrap) {
+    const ctx = logoCanvas.getContext('2d');
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function sizeCanvas() {
+      logoCanvas.width = logoWrap.offsetWidth + 80;
+      logoCanvas.height = logoWrap.offsetHeight + 80;
+    }
+    sizeCanvas();
+    window.addEventListener('resize', sizeCanvas);
+
+    const N = 90;
+    const state = { p: 0 };
+    const particles = Array.from({ length: N }, () => {
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 60 + Math.random() * 90;
+      return {
+        fromX: 0.5 + Math.cos(angle) * (dist / 100),
+        fromY: 0.5 + Math.sin(angle) * (dist / 100),
+        toX: 0.15 + Math.random() * 0.7,
+        toY: 0.15 + Math.random() * 0.7,
+        r: 0.8 + Math.random() * 2,
+        col: Math.random() < 0.5 ? 'rgba(168,85,247,' : 'rgba(230,56,136,'
+      };
+    });
+
+    let played = false;
+    function draw() {
+      const W = logoCanvas.width, H = logoCanvas.height;
+      ctx.clearRect(0, 0, W, H);
+      if (state.p <= 0) return;
+      const fade = 1 - THREE.MathUtils.smoothstep(state.p, 0.7, 1.0);
+      particles.forEach(pt => {
+        const x = (pt.fromX + (pt.toX - pt.fromX) * state.p) * W;
+        const y = (pt.fromY + (pt.toY - pt.fromY) * state.p) * H;
+        const a = (0.15 + state.p * 0.7) * fade;
+        ctx.beginPath();
+        ctx.arc(x, y, pt.r, 0, Math.PI * 2);
+        ctx.fillStyle = pt.col + a + ')';
+        ctx.fill();
+      });
+    }
+
+    ScrollTrigger.create({
+      trigger: '#site-footer',
+      start: 'top 88%',
+      once: true,
+      onEnter: () => {
+        if (played) return;
+        played = true;
+        if (reducedMotion) return;
+        gsap.to(state, {
+          p: 1, duration: 1.8, ease: 'power2.out',
+          onUpdate: draw,
+          onComplete: () => { setTimeout(() => ctx.clearRect(0, 0, logoCanvas.width, logoCanvas.height), 500); }
+        });
+      }
+    });
+  }
+})();
+</script>
+<script>
+// Applies window.__cmsOverrides (see the parser script in <head>) to every
+// element marked data-cms-slot. Runs after the DOM above has parsed, so it
+// only ever swaps text — never touches layout, canvas or scroll behaviour.
+(function () {
+  var overrides = window.__cmsOverrides || {};
+  document.querySelectorAll('[data-cms-slot]').forEach(function (el) {
+    var key = el.getAttribute('data-cms-slot');
+    if (Object.prototype.hasOwnProperty.call(overrides, key) && overrides[key]) {
+      el.textContent = overrides[key];
+    }
+  });
+})();
+</script>
+</body>
+</html>

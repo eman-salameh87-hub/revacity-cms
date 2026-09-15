@@ -4,8 +4,9 @@
 import { Plus, Trash2 } from 'lucide-react';
 import { ItemsEditor, MiniField } from './items-editor';
 import { registeredCustomBlocks } from '@/lib/blocks/custom-registry';
+import { legacyEmbedSlotsFor } from '@/lib/blocks/legacy-embed-overrides';
 import type { ContentBlock } from '@/lib/blocks/types';
-import { useT } from '../i18n-provider';
+import { useAdminI18n, useT } from '../i18n-provider';
 
 type Of<T extends ContentBlock['type']> = Extract<ContentBlock, { type: T }>;
 
@@ -339,7 +340,75 @@ export function CustomEditor({
         </p>
       )}
 
+      <LegacyEmbedOverridesEditor
+        props={block.props}
+        onChange={(props) => onChange({ ...block, props })}
+      />
+
       <PropsEditor value={block.props} onChange={(props) => onChange({ ...block, props })} />
+    </div>
+  );
+}
+
+/**
+ * Friendly fields for the handful of text slots a vendored legacy page (see
+ * lib/blocks/legacy-embed-overrides.ts) has actually been wired to accept —
+ * on top of the raw JSON editor below, never instead of it, since most
+ * `custom` blocks have no registered slots at all.
+ */
+function LegacyEmbedOverridesEditor({
+  props,
+  onChange,
+}: {
+  props: Record<string, unknown>;
+  onChange: (props: Record<string, unknown>) => void;
+}) {
+  const { locale } = useAdminI18n();
+  const slots = legacyEmbedSlotsFor(props.src);
+  if (slots.length === 0) return null;
+
+  const overrides = (props.overrides as Record<string, string> | undefined) ?? {};
+
+  const setOverride = (key: string, value: string) => {
+    const next = { ...overrides, [key]: value };
+    if (!value) delete next[key];
+    onChange({ ...props, overrides: next });
+  };
+
+  return (
+    <div className="space-y-3 rounded-md border border-[var(--admin-line)] p-3">
+      <p className="text-xs text-[var(--admin-text-muted)]">
+        {locale === 'ar'
+          ? 'هذه الحقول فقط قابلة للتعديل من هذه الصفحة المُستوردة — التصميم والخلفية والتمرير كما هي، ولا تتأثر بأي تعديل هنا.'
+          : 'These are the only fields this vendored page exposes for editing — the layout, background, and scrolling stay exactly as they are and are not affected by anything here.'}
+      </p>
+      {slots.map((slot) => (
+        <label key={slot.key} className="block">
+          <span className="mb-1 block text-xs text-[var(--admin-text-secondary)]">
+            {locale === 'ar' ? slot.labelAr : slot.labelEn}
+          </span>
+          {slot.multiline ? (
+            <textarea
+              rows={2}
+              className="admin-input resize-y"
+              value={overrides[slot.key] ?? ''}
+              onChange={(e) => setOverride(slot.key, e.target.value)}
+            />
+          ) : (
+            <input
+              type="text"
+              className="admin-input"
+              value={overrides[slot.key] ?? ''}
+              onChange={(e) => setOverride(slot.key, e.target.value)}
+            />
+          )}
+          {(slot.hintAr || slot.hintEn) && (
+            <span className="mt-1 block text-xs text-[var(--admin-text-muted)]">
+              {locale === 'ar' ? slot.hintAr : slot.hintEn}
+            </span>
+          )}
+        </label>
+      ))}
     </div>
   );
 }

@@ -29,6 +29,19 @@ export const FULL_BLEED = 'mx-[calc(50%-50vw)] w-screen max-w-[100vw]';
  */
 export const HERO_BLOCK_TYPES = ['slider', 'video-hero'] as const;
 
-export function isHeroBlock(type: string): boolean {
-  return (HERO_BLOCK_TYPES as readonly string[]).includes(type);
+/**
+ * `custom` block components that are themselves a hero band, keyed by the
+ * name passed to `registerCustomBlock`. A `custom` block's declared `type` is
+ * always the literal `'custom'`, so a hero-shaped one (e.g. a vendored,
+ * full-page embed) can only be recognized by which component it names.
+ */
+export const HERO_CUSTOM_COMPONENTS = ['revacity-home-engine', 'revacity-about-engine', 'legacy-page-embed'] as const;
+
+export function isHeroBlock(block: { type: string; component?: string } | string): boolean {
+  const b = typeof block === 'string' ? { type: block } : block;
+  if ((HERO_BLOCK_TYPES as readonly string[]).includes(b.type)) return true;
+  if (b.type === 'custom' && b.component) {
+    return (HERO_CUSTOM_COMPONENTS as readonly string[]).includes(b.component);
+  }
+  return false;
 }
