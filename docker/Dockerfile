@@ -72,7 +72,6 @@ COPY --from=builder /app/lib/db/migrations ./lib/db/migrations
 # Read by migrate.cjs, which resolves ./lib/db/migrations relative to WORKDIR.
 COPY --from=builder /app/migrate.cjs ./migrate.cjs
 COPY --from=builder /app/seed.cjs ./seed.cjs
-COPY --from=builder /app/public/uploads/revacity ./public/uploads/revacity
 
 RUN mkdir -p public/uploads && chown -R nextjs:nodejs public/uploads
 

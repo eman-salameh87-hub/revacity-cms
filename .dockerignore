@@ -24,6 +24,7 @@ dist
 
 # Local user content and generated output — the container has its own.
 public/uploads
+!public/uploads/revacity
 .mail-outbox
 .tmp-verify
 coverage
