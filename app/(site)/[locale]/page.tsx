@@ -1,5 +1,5 @@
 // /app/(site)/[locale]/page.tsx
-import { getContentBySlug } from '@/lib/db/queries';
+import { getContentBySlug, getSettings } from '@/lib/db/queries';
 import { HeroSection } from '@/components/site/hero-section';
 import { ContentRenderer } from '@/components/site/content-renderer';
 import { notFound } from 'next/navigation';
@@ -16,7 +16,30 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   if (!locales.includes(locale as Locale)) notFound();
   const typedLocale = locale as Locale;
 
-  const homeContent = await getContentBySlug('home', typedLocale);
+  let homeContent = await getContentBySlug('home', typedLocale);
+
+  /**
+   * No 'home' translation for this locale yet: show the OTHER locale's home
+   * content rather than falling straight to the literal placeholder strings
+   * below. Those strings are a template default meant for a fresh install
+   * with no 'home' entry translated in ANY locale — they were never meant to
+   * be what a real visitor sees on a real language of a real site, which is
+   * exactly what happened on /ar while only the English entry was filled in.
+   */
+  if (!homeContent?.i18n) {
+    const otherLocale = locales.find((l) => l !== typedLocale);
+    if (otherLocale) {
+      const fallback = await getContentBySlug('home', otherLocale);
+      if (fallback?.i18n) homeContent = fallback;
+    }
+  }
+
+  // The site's own name/description — from Settings, filled in at setup —
+  // is what a visitor should see if truly nothing else is available, not a
+  // hardcoded name for a different product ("New Aeon" is this CMS's own
+  // name, not any site built with it).
+  const settings = await getSettings();
+
   const blocks = asContentBlocks(homeContent?.i18n?.body);
 
   /**
@@ -39,8 +62,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     <div>
       {!leadsWithHero && (
         <HeroSection
-          title={homeContent?.i18n?.title || 'New Aeon'}
-          subtitle={homeContent?.i18n?.excerpt || 'Content Management System'}
+          title={homeContent?.i18n?.title || settings?.siteName || 'Revacity'}
+          subtitle={homeContent?.i18n?.excerpt || settings?.siteDescription || ''}
           backgroundImage={homeContent?.content?.featuredImage ?? undefined}
         />
       )}

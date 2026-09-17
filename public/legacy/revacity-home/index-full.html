@@ -4,10 +4,11 @@
 <script>
 // Reads admin-edited text overrides passed via this iframe's own query
 // string (see components/site/custom/revacity-home-engine.tsx) into
-// window.__cmsOverrides, before any other script on this page runs. Only
-// chapters[0]'s eyebrow/heading text (below) ever reads from it — the
-// canvas backgrounds, GSAP ScrollTrigger choreography, and every other
-// chapter are completely untouched.
+// window.__cmsOverrides, before any other script on this page runs. Every
+// chapter below reads its eyebrow/heading/footer text from it — the canvas
+// backgrounds, GSAP ScrollTrigger choreography, and the chapters' array/
+// card/table data (items, cards, negation, comparison, banned, topology,
+// models) are completely untouched.
 window.__cmsOverrides = (function () {
   try {
     var raw = new URLSearchParams(location.search).get('cms');
@@ -16,6 +17,114 @@ window.__cmsOverrides = (function () {
     return {};
   }
 })();
+
+// SECURITY: every value read via ov() below is then assigned with
+// `.innerHTML =` further down (see updateCopyDOM / transitionToChapter), so
+// it can carry real markup (the coloured <span> highlights, the <u>/<a>
+// tags used in the hardcoded defaults right below). Naively trusting it
+// would be a stored-and-reflected XSS: __cmsOverrides above is built
+// straight from JSON.parse on this iframe's OWN URL query string, so it is
+// not just "whatever the admin saved" — literally anyone can hand someone
+// a link to this page with a crafted `?cms=` value and run arbitrary script
+// in it. This allowlist-based sanitizer runs on every override value
+// (never on the hardcoded defaults, which are developer-authored) before it
+// can reach the DOM, mirroring the tag/attribute policy already enforced
+// server-side for rich text in lib/blocks/sanitize.ts. Kept dependency-free
+// (no import — this is a static vendored file, not a bundled module) using
+// DOMParser to build a detached, unrendered document: elements parsed this
+// way never execute (a <script> is marked "already started" and inert, an
+// <img onerror> never runs its load algorithm because the document is not
+// in a browsing context), so it is safe to walk and prune before the
+// resulting STRING — not the live nodes — is ever assigned to a real
+// element's innerHTML.
+var CMS_ALLOWED_TAGS = { A: 1, SPAN: 1, U: 1, B: 1, STRONG: 1, I: 1, EM: 1, BR: 1 };
+// Every class actually used inside an overridable field's default value
+// above (u-word, highlight-purple, highlight-red, strike-funnel,
+// purple-glow-text) or elsewhere in this same colour system
+// (text-purple/text-yellow/text-orange/text-teal) — nothing else is a
+// class this document's CSS gives any special meaning to, so nothing else
+// is worth allowing.
+var CMS_ALLOWED_CLASSES = {
+  'u-word': 1, 'highlight-purple': 1, 'highlight-red': 1, 'purple-glow-text': 1,
+  'text-purple': 1, 'text-yellow': 1, 'text-orange': 1, 'text-teal': 1,
+};
+var CMS_REMOVE_ENTIRELY = { SCRIPT: 1, STYLE: 1, IFRAME: 1, OBJECT: 1, EMBED: 1, SVG: 1, MATH: 1, LINK: 1, BASE: 1, TEMPLATE: 1 };
+
+function cmsSafeHref(href) {
+  if (typeof href !== 'string') return null;
+  href = href.trim();
+  // A same-origin absolute path ("/en/services"), or a plain https:// link.
+  // Rejects javascript:, data:, protocol-relative //host, and everything
+  // else that isn't one of the two shapes this content ever legitimately
+  // uses (see heroHeading's default above).
+  if (href.charAt(0) === '/' && href.charAt(1) !== '/') return href;
+  if (/^https:\/\//i.test(href)) return href;
+  return null;
+}
+
+function sanitizeInlineHtml(html) {
+  if (typeof html !== 'string' || !html) return '';
+  try {
+    var doc = new DOMParser().parseFromString('<div>' + html + '</div>', 'text/html');
+    var root = doc.body && doc.body.firstChild;
+    if (!root) return '';
+    (function clean(node) {
+      var children = Array.prototype.slice.call(node.childNodes);
+      children.forEach(function (child) {
+        if (child.nodeType === 1) {
+          var tag = child.tagName;
+          if (CMS_REMOVE_ENTIRELY[tag]) {
+            node.removeChild(child);
+            return;
+          }
+          if (!CMS_ALLOWED_TAGS[tag]) {
+            // Not on the allowlist and not actively dangerous (a stray
+            // <div>/<p>/<img>/...): unwrap rather than delete, so ordinary
+            // text isn't lost to an unexpected wrapper tag.
+            while (child.firstChild) node.insertBefore(child.firstChild, child);
+            node.removeChild(child);
+            return;
+          }
+          Array.prototype.slice.call(child.attributes).forEach(function (attr) {
+            var name = attr.name.toLowerCase();
+            if (name === 'class') {
+              var kept = attr.value.split(/\s+/).filter(function (c) { return CMS_ALLOWED_CLASSES[c]; });
+              if (kept.length) child.setAttribute('class', kept.join(' '));
+              else child.removeAttribute('class');
+            } else if (tag === 'A' && name === 'href') {
+              var safe = cmsSafeHref(attr.value);
+              if (safe) child.setAttribute('href', safe);
+              else child.removeAttribute('href');
+            } else if (tag === 'A' && name === 'target') {
+              if (attr.value !== '_top') child.removeAttribute('target');
+            } else if (tag === 'A' && name === 'rel') {
+              child.setAttribute('rel', 'noopener noreferrer');
+            } else {
+              // Covers every on* handler, style, id, src, and anything else
+              // not explicitly whitelisted above — default is remove.
+              child.removeAttribute(attr.name);
+            }
+          });
+          clean(child);
+        } else if (child.nodeType !== 3) {
+          // Comments / processing instructions: no legitimate use here.
+          node.removeChild(child);
+        }
+      });
+    })(root);
+    return root.innerHTML;
+  } catch (e) {
+    return '';
+  }
+}
+
+// `ov('key')` replaces the old `window.__cmsOverrides.key` reads below:
+// same "falsy means use the hardcoded default" behaviour via the existing
+// `|| '...'` at each call site, but the value is sanitized first.
+function ov(key) {
+  var v = window.__cmsOverrides[key];
+  return sanitizeInlineHtml(v);
+}
 </script>
 <meta charset="UTF-8">
 <!-- Set the background before anything else so there's no white flash while any render-blocking scripts/fonts below are downloading — without this, the browser can paint its default white background before the page's own <style> block (further down) ever applies. -->
@@ -2400,15 +2509,15 @@ const chapters = [
     key:'intro', hex:'#e7ecff', isStatement:true,
     // Admin-edited text (see the parser script in <head>) wins when set;
     // otherwise these are the original hardcoded strings, byte-for-byte.
-    eyebrow: window.__cmsOverrides.heroEyebrow || '\u201cAre you here to <u>Compete</u>, or to <u>Dominate</u>?\u201d',
-    heading: window.__cmsOverrides.heroHeading || 'Are you Here for a <a class="u-word" href="/en/services" target="_top">Reason</a> or <a class="u-word" href="/en/the-agent" target="_top">Reasoning</a>?',
+    eyebrow: ov('heroEyebrow') || '\u201cAre you here to <u>Compete</u>, or to <u>Dominate</u>?\u201d',
+    heading: ov('heroHeading') || 'Are you Here for a <a class="u-word" href="/en/services" target="_top">Reason</a> or <a class="u-word" href="/en/the-agent" target="_top">Reasoning</a>?',
     sub:'',
     detail:'Smooth, immersive 3D scroll experiences built with GSAP, WebGL, and Three.js \u2014 turning simple scrolling into responsive visual motion.'
   },
   {
     key:'origin', hex:'#c9a8ff',
-    eyebrow: window.__cmsOverrides.originEyebrow || 'The Industry in 2026',
-    heading: window.__cmsOverrides.originHeading || 'Five Systemic Failures',
+    eyebrow: ov('originEyebrow') || 'The Industry in 2026',
+    heading: ov('originHeading') || 'Five Systemic Failures',
     sub:'',   /* empty — `p.sub:empty { display:none }` drops it from the flow */
     /* Any chapter carrying `items` renders them as a numbered list and switches
        the copy block to the wide, left-aligned layout. */
@@ -2419,12 +2528,12 @@ const chapters = [
       ['Trust Recession',     'AI-generated content saturation has made consumers skeptical.'],
       ['The Jagged Frontier', 'Agents solve PhD math but fail on real-world process.'],
     ],
-    detail: window.__cmsOverrides.originDetail || 'In the first fraction of a second, energy became matter. What began as pure light would, in time, become stars, planets, and everything that has ever wondered about them.'
+    detail: ov('originDetail') || 'In the first fraction of a second, energy became matter. What began as pure light would, in time, become stars, planets, and everything that has ever wondered about them.'
   },
   {
     key:'nebula', hex:'#e26fe0',
-    eyebrow: window.__cmsOverrides.nebulaEyebrow || 'COMPETITIVE LANDSCAPE',
-    heading: window.__cmsOverrides.nebulaHeading || 'What We Replace',
+    eyebrow: ov('nebulaEyebrow') || 'COMPETITIVE LANDSCAPE',
+    heading: ov('nebulaHeading') || 'What We Replace',
     sub:'',
     detail:'',
     /* Any chapter carrying `cards` renders them as the red-themed
@@ -2436,12 +2545,12 @@ const chapters = [
       { n:'02', title:'The Arbitrage Circus', text:'Agencies that buy cheap attention and sell it expensive. No engineering. No strategy. Just margin on media spend.', icon:2 },
       { n:'03', title:'The Agent-Washers', text:'Vendors wrapping rigid workflows in AI branding. The agent doesn’t think; it follows a script someone wrote in 2023.', icon:3 }
     ],
-    footer: window.__cmsOverrides.nebulaFooter || 'We are none of these. We are a <span class="highlight-purple">Stateless Outcome Engineering Practice</span> that signs behind revenue outcomes with our own money on the line.'
+    footer: ov('nebulaFooter') || 'We are none of these. We are a <span class="highlight-purple">Stateless Outcome Engineering Practice</span> that signs behind revenue outcomes with our own money on the line.'
   },
   {
     key:'galaxy', hex:'#8f6fff',
-    eyebrow: window.__cmsOverrides.galaxyEyebrow || 'CLARITY THROUGH NEGATION',
-    heading: window.__cmsOverrides.galaxyHeading || 'What We Are Not.',
+    eyebrow: ov('galaxyEyebrow') || 'CLARITY THROUGH NEGATION',
+    heading: ov('galaxyHeading') || 'What We Are Not.',
     sub:'',
     detail:'',
     /* Any chapter carrying `negation` renders it as the red dash-bordered
@@ -2455,12 +2564,12 @@ const chapters = [
       { title:'Not a Growth Hacking Shop.', text:'We don’t chase hacks, shortcuts, or viral tricks. We engineer compound systems.' },
       { title:'Not a Traditional Agency.', text:'We don’t bill hours, pad retainers, or hide behind scope-change fees.' }
     ],
-    negationFooter: window.__cmsOverrides.galaxyNegationFooter || 'We are a <span class="text-purple">Revenue and Growth Engineering Practice</span> that gets paid <span class="text-yellow">when you collect money.</span>'
+    negationFooter: ov('galaxyNegationFooter') || 'We are a <span class="text-purple">Revenue and Growth Engineering Practice</span> that gets paid <span class="text-yellow">when you collect money.</span>'
   },
   {
     key:'voyage', hex:'#6f8fff',
-    eyebrow: window.__cmsOverrides.voyageEyebrow || 'LINGUISTIC ARCHITECTURE',
-    heading: window.__cmsOverrides.voyageHeading || 'Words Matter. We <span class="highlight-red">Replaced</span> Yours.',
+    eyebrow: ov('voyageEyebrow') || 'LINGUISTIC ARCHITECTURE',
+    heading: ov('voyageHeading') || 'Words Matter. We <span class="highlight-red">Replaced</span> Yours.',
     sub:'',
     detail:'',
     /* Any chapter carrying `comparison` renders it as the term/replaces
@@ -2483,8 +2592,8 @@ const chapters = [
   },
   {
     key:'horizon', hex:'#b06fff',
-    eyebrow: window.__cmsOverrides.horizonEyebrow || 'REVENUE TOPOLOGY',
-    heading: window.__cmsOverrides.horizonHeading || 'Not a <span class="strike-funnel">Funnel</span>. A Fluid Revenue Topology.',
+    eyebrow: ov('horizonEyebrow') || 'REVENUE TOPOLOGY',
+    heading: ov('horizonHeading') || 'Not a <span class="strike-funnel">Funnel</span>. A Fluid Revenue Topology.',
     sub:'',
     detail:'',
     /* Any chapter carrying `topology` renders it as the phase table + node
@@ -2504,19 +2613,19 @@ const chapters = [
       [10, 'The Amplify',   'Client becomes proof'],
       [11, 'The Return',    'Win-back, reactivation']
     ],
-    topologyFootnote: window.__cmsOverrides.horizonTopologyFootnote || 'Multi-entry, multi-exit. The topology adapts to the customer\u2019s meaning-state, not the other way around.'
+    topologyFootnote: ov('horizonTopologyFootnote') || 'Multi-entry, multi-exit. The topology adapts to the customer\u2019s meaning-state, not the other way around.'
   },
   {
     key:'singularity', hex:'#d06fff',
-    eyebrow: window.__cmsOverrides.singularityEyebrow || 'THE AUTOPSY',
-    heading: window.__cmsOverrides.singularityHeading || 'BROKEN MODELS. ONE REALITY.',
+    eyebrow: ov('singularityEyebrow') || 'THE AUTOPSY',
+    heading: ov('singularityHeading') || 'BROKEN MODELS. ONE REALITY.',
     sub:'',
     detail:'',
     /* Any chapter carrying `models` renders them as the model-card grid
        below the heading (see has-models in <style>) — heading stays
        permanently visible, same treatment as cards/negation/comparison/
        topology. Cards render fully expanded (no click-to-expand). */
-    dyingBadge: window.__cmsOverrides.singularityDyingBadge || 'WHY YOUR CURRENT AGENCY IS DYING.',
+    dyingBadge: ov('singularityDyingBadge') || 'WHY YOUR CURRENT AGENCY IS DYING.',
     models:[
       {
         icon:'house', stroke:'stroke-pink', tagClass:'tag-purple', tag:'TIME + HEADCOUNT = 💀',
@@ -2543,14 +2652,14 @@ const chapters = [
   },
   {
     key:'infinity', hex:'#f3e8ff',
-    eyebrow:'', heading: window.__cmsOverrides.infinityHeading || 'Book the Diagnostic.',
+    eyebrow:'', heading: ov('infinityHeading') || 'Book the Diagnostic.',
     sub:'', detail:'',
     diagnostic:true,
     diagLead:'',
-    diagBanner: window.__cmsOverrides.infinityDiagBanner || 'We don\u2019t sell services. We sell <span class="purple-glow-text">financial certainty.</span>',
-    skepticTitle: window.__cmsOverrides.infinitySkepticTitle || 'Still skeptical?',
-    skepticDesc: window.__cmsOverrides.infinitySkepticDesc || 'Good. Skeptics make the best clients.',
-    compareText: window.__cmsOverrides.infinityCompareText || 'Compare us with others<br>so you can know more'
+    diagBanner: ov('infinityDiagBanner') || 'We don\u2019t sell services. We sell <span class="purple-glow-text">financial certainty.</span>',
+    skepticTitle: ov('infinitySkepticTitle') || 'Still skeptical?',
+    skepticDesc: ov('infinitySkepticDesc') || 'Good. Skeptics make the best clients.',
+    compareText: ov('infinityCompareText') || 'Compare us with others<br>so you can know more'
   }
 ];
 const N_CHAPTERS = chapters.length;

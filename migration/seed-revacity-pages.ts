@@ -575,16 +575,12 @@ const POSTS: PostSpec[] = [
       "The “Uncanny Valley” of Sales Automation — Why Near-Human AI Destroys Trust",
     excerpt:
       "When AI agents are realistic enough to appear human but flawed enough to trigger distrust, conversion collapses. 78% of buyers view 100% AI outreach as inauthentic.",
-    blocks: [
-      {
-        type: "paragraph",
-        text: "When AI agents are realistic enough to appear human but flawed enough to trigger distrust, conversion collapses. 78% of buyers view 100% AI outreach as inauthentic.",
-      },
-      {
-        type: "paragraph",
-        text: "This is a teaser from the Revacity Intelligence Dispatches series. Expand this post with the full article from the page editor — the original export only carried the headline and teaser shown on the blog index.",
-      },
-    ],
+    // No body yet: the legacy export only carried the headline and
+    // excerpt shown on the blog index (see the file header). Empty
+    // renders nothing, rather than a duplicate of the excerpt above plus
+    // an internal migration note that was never meant to be public —
+    // write the real article here from the page editor.
+    blocks: [] as ContentBlock[],
   },
   {
     slug: "ai-slop-fatigue",
@@ -592,16 +588,12 @@ const POSTS: PostSpec[] = [
       "AI Slop Fatigue: Why Buyers Are Ghosting “Perfect” Outreach in 2026",
     excerpt:
       "Flawlessly written, soullessly generic. The outreach hack that worked in 2024 is now actively damaging your pipeline.",
-    blocks: [
-      {
-        type: "paragraph",
-        text: "Flawlessly written, soullessly generic. The outreach hack that worked in 2024 is now actively damaging your pipeline.",
-      },
-      {
-        type: "paragraph",
-        text: "This is a teaser from the Revacity Intelligence Dispatches series. Expand this post with the full article from the page editor — the original export only carried the headline and teaser shown on the blog index.",
-      },
-    ],
+    // No body yet: the legacy export only carried the headline and
+    // excerpt shown on the blog index (see the file header). Empty
+    // renders nothing, rather than a duplicate of the excerpt above plus
+    // an internal migration note that was never meant to be public —
+    // write the real article here from the page editor.
+    blocks: [] as ContentBlock[],
   },
   {
     slug: "human-in-the-loop-revenue-architecture",
@@ -609,48 +601,36 @@ const POSTS: PostSpec[] = [
       "Human-in-the-Loop Is Not a Compromise — It Is the Revenue Architecture",
     excerpt:
       "The organisations hitting targets in 2026 kept humans in the decision loop deliberately. Not as a fallback — as a structural advantage.",
-    blocks: [
-      {
-        type: "paragraph",
-        text: "The organisations hitting targets in 2026 kept humans in the decision loop deliberately. Not as a fallback — as a structural advantage.",
-      },
-      {
-        type: "paragraph",
-        text: "This is a teaser from the Revacity Intelligence Dispatches series. Expand this post with the full article from the page editor — the original export only carried the headline and teaser shown on the blog index.",
-      },
-    ],
+    // No body yet: the legacy export only carried the headline and
+    // excerpt shown on the blog index (see the file header). Empty
+    // renders nothing, rather than a duplicate of the excerpt above plus
+    // an internal migration note that was never meant to be public —
+    // write the real article here from the page editor.
+    blocks: [] as ContentBlock[],
   },
   {
     slug: "human-is-the-premium-asset",
     title: "“Human” Is the Premium Asset — The Luxury of Inefficiency in 2026",
     excerpt:
       "The very flaws that define human existence — our need to sleep, our emotional volatility — have become the ultimate luxury good in an automated world.",
-    blocks: [
-      {
-        type: "paragraph",
-        text: "The very flaws that define human existence — our need to sleep, our emotional volatility — have become the ultimate luxury good in an automated world.",
-      },
-      {
-        type: "paragraph",
-        text: "This is a teaser from the Revacity Intelligence Dispatches series. Expand this post with the full article from the page editor — the original export only carried the headline and teaser shown on the blog index.",
-      },
-    ],
+    // No body yet: the legacy export only carried the headline and
+    // excerpt shown on the blog index (see the file header). Empty
+    // renders nothing, rather than a duplicate of the excerpt above plus
+    // an internal migration note that was never meant to be public —
+    // write the real article here from the page editor.
+    blocks: [] as ContentBlock[],
   },
   {
     slug: "ideas-ai-cannot-generate",
     title: "Techniques for Producing Ideas That AI Cannot Generate for You",
     excerpt:
       "In a world where AI generates 1,000 ideas in seconds, producing one genuinely novel idea is the rarest market skill. Here is the method that still works.",
-    blocks: [
-      {
-        type: "paragraph",
-        text: "In a world where AI generates 1,000 ideas in seconds, producing one genuinely novel idea is the rarest market skill. Here is the method that still works.",
-      },
-      {
-        type: "paragraph",
-        text: "This is a teaser from the Revacity Intelligence Dispatches series. Expand this post with the full article from the page editor — the original export only carried the headline and teaser shown on the blog index.",
-      },
-    ],
+    // No body yet: the legacy export only carried the headline and
+    // excerpt shown on the blog index (see the file header). Empty
+    // renders nothing, rather than a duplicate of the excerpt above plus
+    // an internal migration note that was never meant to be public —
+    // write the real article here from the page editor.
+    blocks: [] as ContentBlock[],
   },
   {
     slug: "where-automation-destroys-revenue",
@@ -658,16 +638,12 @@ const POSTS: PostSpec[] = [
       "Where Machines Should Be Left Alone — And Where Automation Destroys Revenue",
     excerpt:
       "The agencies outperforming in 2026 did not automate the most. They automated the right things. The line is more precise than most admit.",
-    blocks: [
-      {
-        type: "paragraph",
-        text: "The agencies outperforming in 2026 did not automate the most. They automated the right things. The line is more precise than most admit.",
-      },
-      {
-        type: "paragraph",
-        text: "This is a teaser from the Revacity Intelligence Dispatches series. Expand this post with the full article from the page editor — the original export only carried the headline and teaser shown on the blog index.",
-      },
-    ],
+    // No body yet: the legacy export only carried the headline and
+    // excerpt shown on the blog index (see the file header). Empty
+    // renders nothing, rather than a duplicate of the excerpt above plus
+    // an internal migration note that was never meant to be public —
+    // write the real article here from the page editor.
+    blocks: [] as ContentBlock[],
   },
   {
     slug: "china-vs-us-ai-war",
@@ -675,32 +651,24 @@ const POSTS: PostSpec[] = [
       "China vs. US: The AI War That Is Deciding Your Agency’s Relevance in 2026",
     excerpt:
       "Qwen-3 matches GPT-4o on revenue tasks at a fraction of the cost. Anthropic dominates agentic workflows. Nvidia holds the real moat. What the player map means for how you build.",
-    blocks: [
-      {
-        type: "paragraph",
-        text: "Qwen-3 matches GPT-4o on revenue tasks at a fraction of the cost. Anthropic dominates agentic workflows. Nvidia holds the real moat. What the player map means for how you build.",
-      },
-      {
-        type: "paragraph",
-        text: "This is a teaser from the Revacity Intelligence Dispatches series. Expand this post with the full article from the page editor — the original export only carried the headline and teaser shown on the blog index.",
-      },
-    ],
+    // No body yet: the legacy export only carried the headline and
+    // excerpt shown on the blog index (see the file header). Empty
+    // renders nothing, rather than a duplicate of the excerpt above plus
+    // an internal migration note that was never meant to be public —
+    // write the real article here from the page editor.
+    blocks: [] as ContentBlock[],
   },
   {
     slug: "price-as-a-brand-idea",
     title: "Price as a Brand Idea: Strategic Positioning Beyond Cost in 2026",
     excerpt:
       "Price is not a number. It is a statement about who you are and who your customer is. The brands winning in 2026 know this — most are leaving it completely unexplored.",
-    blocks: [
-      {
-        type: "paragraph",
-        text: "Price is not a number. It is a statement about who you are and who your customer is. The brands winning in 2026 know this — most are leaving it completely unexplored.",
-      },
-      {
-        type: "paragraph",
-        text: "This is a teaser from the Revacity Intelligence Dispatches series. Expand this post with the full article from the page editor — the original export only carried the headline and teaser shown on the blog index.",
-      },
-    ],
+    // No body yet: the legacy export only carried the headline and
+    // excerpt shown on the blog index (see the file header). Empty
+    // renders nothing, rather than a duplicate of the excerpt above plus
+    // an internal migration note that was never meant to be public —
+    // write the real article here from the page editor.
+    blocks: [] as ContentBlock[],
   },
 ];
 
