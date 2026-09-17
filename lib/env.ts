@@ -60,7 +60,35 @@ const envSchema = z.object({
 
   RESEND_API_KEY: z.string().min(1).optional(),
 
-  NEXT_PUBLIC_APP_URL: z.string().url().default('http://localhost:3000'),
+  /**
+   * The bare site origin — protocol + host, nothing else. Every absolute URL
+   * the app emits (sitemap entries, canonical links, hreflang, og:url, the
+   * JSON-LD `url`/`urlTemplate` fields) is built by gluing a locale and a path
+   * onto this value. A deploy that sets this to ".../en" instead of the plain
+   * domain silently doubles the locale into every one of those URLs
+   * ("/en/en/about") — the kind of bug that only shows up once a search
+   * engine tries to crawl the sitemap. Rejecting a non-root path here, at
+   * boot, turns that into a loud startup failure instead.
+   */
+  NEXT_PUBLIC_APP_URL: z
+    .string()
+    .url('NEXT_PUBLIC_APP_URL must be a valid URL')
+    .default('http://localhost:3000')
+    .refine(
+      (value) => {
+        try {
+          return new URL(value).pathname === '/';
+        } catch {
+          return false;
+        }
+      },
+      (value) => ({
+        message:
+          `NEXT_PUBLIC_APP_URL must be the bare site origin only, e.g. "https://example.com" — ` +
+          `got "${value}", which includes a path. Locale and page paths are added by the app itself; ` +
+          `remove everything after the domain.`,
+      })
+    ),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
 });
 
