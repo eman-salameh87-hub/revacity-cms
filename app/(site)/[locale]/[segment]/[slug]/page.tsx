@@ -2,7 +2,7 @@
 import type { Metadata } from 'next';
 import { redirectOrNotFound } from '@/lib/redirects/guard';
 import { db } from '@/lib/db';
-import { content, contentI18n, contentTypes } from '@/lib/db/schema';
+import { content, contentI18n, contentTypes, users } from '@/lib/db/schema';
 import { and, eq } from 'drizzle-orm';
 import { ContentRenderer } from '@/components/site/content-renderer';
 import { asContentBlocks } from '@/lib/blocks/content-schema';
@@ -12,6 +12,8 @@ import { getSettings } from '@/lib/db/queries';
 import { locales, type Locale } from '@/lib/env';
 import { parseFieldDefinitions } from '@/lib/content/custom-fields';
 import { CustomFieldBanner, CustomFieldDetails } from '@/components/site/custom-fields';
+import { JsonLd } from '@/components/site/json-ld';
+import { articleJsonLd, absoluteUrl } from '@/lib/seo/json-ld';
 
 interface Params {
   params: Promise<{ locale: string; segment: string; slug: string }>;
@@ -50,6 +52,13 @@ async function load(localeParam: string, prefix: string, slug: string) {
       // already runs.
       customFieldValues: content.customFieldValues,
       typeCustomFields: contentTypes.customFields,
+      // Only consumed for `post` entries (see isPost below), to build their
+      // BlogPosting structured data — a byline, a hero image fallback, and
+      // the dates a rich result and an answer engine both want.
+      featuredImage: content.featuredImage,
+      publishedAt: content.publishedAt,
+      updatedAt: content.updatedAt,
+      authorName: users.name,
     })
     .from(content)
     .innerJoin(contentTypes, eq(contentTypes.id, content.typeId))
@@ -59,12 +68,18 @@ async function load(localeParam: string, prefix: string, slug: string) {
       contentI18n,
       and(eq(contentI18n.contentId, content.id), eq(contentI18n.locale, locale))
     )
+    // LEFT JOIN: a post's author may since have been removed, and that must
+    // not take the post down with them.
+    .leftJoin(users, eq(users.id, content.authorId))
     .where(and(eq(content.slug, slug), eq(contentTypes.id, type.id)))
     .limit(1);
 
   // Drafts and archived entries must not be reachable by guessing a URL.
   if (!row || row.status !== 'published') return null;
-  return { row, locale };
+  // The built-in `post` type is the only one this template promises
+  // `og:type: article` for (see generateMetadata below) — BlogPosting JSON-LD
+  // is scoped to match, rather than emitted for every admin-created type.
+  return { row, locale, isPost: type.slug === 'post' };
 }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
@@ -105,8 +120,26 @@ export default async function CustomTypeEntry({ params }: Params) {
   const { row } = loaded;
   const definitions = parseFieldDefinitions(row.typeCustomFields);
 
+  let articleSchema: Record<string, unknown> | null = null;
+  if (loaded.isPost) {
+    const settings = await getSettings();
+    articleSchema = articleJsonLd({
+      url: absoluteUrl(`/${locale}/${segment}/${slug}`),
+      headline: row.metaTitle || row.title || slug,
+      description: row.metaDescription || row.excerpt,
+      image: row.ogImage ?? row.featuredImage ?? settings?.logo,
+      datePublished: row.publishedAt,
+      dateModified: row.updatedAt,
+      authorName: row.authorName,
+      publisherName: settings?.siteName ?? 'CMS',
+      publisherLogo: settings?.logo,
+      locale: loaded.locale,
+    });
+  }
+
   return (
     <article className="mx-auto max-w-4xl px-4 py-16" data-test-id="type-entry">
+      {articleSchema && <JsonLd data={articleSchema} />}
       <header className="mb-8">
         <h1 className="font-display text-3xl font-bold text-site-ink">{row.title ?? slug}</h1>
         {row.excerpt && <p className="mt-2 text-site-ink-muted">{row.excerpt}</p>}

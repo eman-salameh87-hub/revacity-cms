@@ -216,6 +216,65 @@ export function webSiteJsonLd(input: {
 }
 
 /**
+ * A blog post, so it can appear as an Article rich result instead of a plain
+ * link — and so an answer engine can attribute the claims on the page to a
+ * publish date and an author instead of guessing.
+ *
+ * `BlogPosting` (not the more generic `Article`) matches the `blog` post
+ * type this is emitted for, and is what `og:type: article` on the same page
+ * was implicitly promising but never backed up with structured data.
+ */
+export function articleJsonLd(input: {
+  url: string;
+  headline: string;
+  description?: string | null;
+  image?: string | null;
+  datePublished?: Date | null;
+  dateModified?: Date | null;
+  /** The byline. Falls back to the publisher when a post has no author set. */
+  authorName?: string | null;
+  publisherName: string;
+  publisherLogo?: string | null;
+  locale: 'ar' | 'en';
+}): Record<string, unknown> {
+  // Google truncates a headline past ~110 characters in the rich result
+  // anyway; better to hand it one that already fits than let it pick where
+  // to cut a sentence.
+  const MAX_HEADLINE = 110;
+  const headline =
+    input.headline.length > MAX_HEADLINE
+      ? `${input.headline.slice(0, MAX_HEADLINE - 1).trimEnd()}…`
+      : input.headline;
+
+  const node: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline,
+    url: input.url,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': input.url },
+    inLanguage: input.locale,
+    author: input.authorName
+      ? { '@type': 'Person', name: input.authorName }
+      : { '@type': 'Organization', name: input.publisherName },
+    publisher: {
+      '@type': 'Organization',
+      name: input.publisherName,
+      ...(input.publisherLogo
+        ? { logo: { '@type': 'ImageObject', url: absoluteUrl(input.publisherLogo) } }
+        : {}),
+    },
+  };
+
+  if (input.description) node.description = input.description;
+  if (input.image) node.image = [absoluteUrl(input.image)];
+  // A dateless post is still valid schema — omit rather than fabricate one.
+  if (input.datePublished) node.datePublished = input.datePublished.toISOString();
+  if (input.dateModified) node.dateModified = input.dateModified.toISOString();
+
+  return node;
+}
+
+/**
  * Questions and answers, as a machine can read them.
  *
  * Answers are plain text on purpose. FAQPage wants a string, and the exercise
