@@ -79,7 +79,17 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
         disallow: ['/api/'],
       },
       // Listed either way, so the answer is explicit rather than inferred.
-      { userAgent: aiAgents, ...(allowAi ? { allow: '/' } : { disallow: '/' }) },
+      //
+      // A named User-agent group is NOT layered on top of the `*` group above
+      // — a crawler that matches its own name uses that group's rules alone
+      // and ignores `*` entirely (that's the whole point of naming it). So
+      // when these are allowed, `/api/` has to be repeated here too, or an
+      // "Allow: /" with nothing else hands GPTBot/ClaudeBot/etc. exactly the
+      // access to /api/ the `*` group was written to withhold.
+      {
+        userAgent: aiAgents,
+        ...(allowAi ? { allow: '/', disallow: ['/api/'] } : { disallow: '/' }),
+      },
     ],
     sitemap: `${base}/sitemap.xml`,
     host: base,
