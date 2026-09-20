@@ -26,7 +26,7 @@ window.__cmsOverrides = (function () {
 <title>REVacity | Compare</title>
 <link rel="icon" type="image/png" href="media/icon.png">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght=0,300;0,400;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
 <link href="style.css" rel="stylesheet">
 <style>
 /* Compare page — page-specific overrides */
@@ -326,7 +326,7 @@ try {
 <header class="main-header">
     <div class="logo"><a href="/en" target="_top"><img src="media/logo-new.png" alt="Revacity" fetchpriority="high" /></a></div>
 
-    <nav class="nav-center">
+    <nav class="nav-center" aria-label="Primary">
         <a href="/en" target="_top" data-text="The Collapse">The Collapse</a>
         <a href="/en/about" target="_top" data-text="About Us">About Us</a>
         <a href="/en/before-judging-us" target="_top" data-text="Before Judging">Before Judging</a>
@@ -352,7 +352,7 @@ try {
     </div>
 </header>
 
-<div class="mobile-slide-menu" id="mobile-menu">
+<div class="mobile-slide-menu" id="mobile-menu" role="navigation" aria-label="Mobile" aria-hidden="true">
     <div class="close-menu" id="close-menu">
         <span></span>
         <span></span>
@@ -404,17 +404,17 @@ try {
       <div class="footer-links-grid">
         <div class="footer-link-group">
             <h4 class="group-title">STRUCTURE</h4>
-            <a href="/en" target="_top" class="footer-link-item"><span class="link-num">01 //</span> The Collapse</a>
-            <a href="/en/about" target="_top" class="footer-link-item"><span class="link-num">02 //</span> About Us</a>
-            <a href="/en/our-architecture" target="_top" class="footer-link-item"><span class="link-num">03 //</span> Our Architecture</a>
-            <a href="/en/glossary" target="_top" class="footer-link-item"><span class="link-num">04 //</span> Glossary</a>
+            <a href="/en" target="_top" class="footer-link-item"><span class="link-num" aria-hidden="true">01 //</span> The Collapse</a>
+            <a href="/en/about" target="_top" class="footer-link-item"><span class="link-num" aria-hidden="true">02 //</span> About Us</a>
+            <a href="/en/our-architecture" target="_top" class="footer-link-item"><span class="link-num" aria-hidden="true">03 //</span> Our Architecture</a>
+            <a href="/en/glossary" target="_top" class="footer-link-item"><span class="link-num" aria-hidden="true">04 //</span> Glossary</a>
         </div>
 
         <div class="footer-link-group">
             <h4 class="group-title">STRUCTURE</h4>
-            <a href="/en/before-judging-us" target="_top" class="footer-link-item"><span class="link-num">05 //</span> Before Judging</a>
-            <a href="/en/compare" target="_top" class="footer-link-item"><span class="link-num">06 //</span> Compare</a>
-            <a href="/en/blog" target="_top" class="footer-link-item"><span class="link-num">07 //</span>Blog</a>
+            <a href="/en/before-judging-us" target="_top" class="footer-link-item"><span class="link-num" aria-hidden="true">05 //</span> Before Judging</a>
+            <a href="/en/compare" target="_top" class="footer-link-item"><span class="link-num" aria-hidden="true">06 //</span> Compare</a>
+            <a href="/en/blog" target="_top" class="footer-link-item"><span class="link-num" aria-hidden="true">07 //</span>Blog</a>
         </div>
       </div>
 
@@ -801,6 +801,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 })();
+</script>
+<script>
+/* Accessibility fix: keep #mobile-menu's aria-hidden in sync with its
+   'active' class. It sits off-screen via transform (not display:none)
+   until opened, so without this its links stayed exposed to screen
+   readers and the tab order at every viewport width — a silent duplicate
+   of the visible header nav. */
+(function(){var m=document.getElementById('mobile-menu');if(!m)return;function sync(){m.setAttribute('aria-hidden',m.classList.contains('active')?'false':'true');}new MutationObserver(sync).observe(m,{attributes:true,attributeFilter:['class']});sync();})();
 </script>
 </body>
 </html>

@@ -1436,7 +1436,7 @@ text-transform: none;
 <header class="main-header">
   <div class="logo"><a href="/en" target="_top"><img src="media/logo-new.png" alt="Revacity" fetchpriority="high" /></a></div>
 
-  <nav class="nav-center">
+  <nav class="nav-center" aria-label="Primary">
     <a href="/en" target="_top" data-text="The Collapse">The Collapse</a>
     <a href="/en/about" target="_top" data-text="About Us">About Us</a>
     <a href="/en/before-judging-us" target="_top" data-text="Before Judging">Before Judging</a>
@@ -1461,7 +1461,7 @@ text-transform: none;
   </div>
 </header>
 
-<div class="mobile-slide-menu" id="mobile-menu">
+<div class="mobile-slide-menu" id="mobile-menu" role="navigation" aria-label="Mobile" aria-hidden="true">
   <div class="close-menu" id="close-menu">
     <span></span>
     <span></span>
@@ -6921,5 +6921,13 @@ requestAnimationFrame(render);
 <a class="corner-label corner-label--tr" id="labelAgent" href="/en/the-agent" target="_top">The Agent<span class="corner-label-sub">Revenue is my only language</span></a>
 <a class="corner-label corner-label--bl" id="labelServices" href="/en/services" target="_top">Services<span class="corner-label-sub">Still looking for the standard list?<br>We understand, But not FOLLOW</span></a>
 
+<script>
+/* Accessibility fix: keep #mobile-menu's aria-hidden in sync with its
+   'active' class. It sits off-screen via transform (not display:none)
+   until opened, so without this its links stayed exposed to screen
+   readers and the tab order at every viewport width — a silent duplicate
+   of the visible header nav. */
+(function(){var m=document.getElementById('mobile-menu');if(!m)return;function sync(){m.setAttribute('aria-hidden',m.classList.contains('active')?'false':'true');}new MutationObserver(sync).observe(m,{attributes:true,attributeFilter:['class']});sync();})();
+</script>
 </body>
 </html>
