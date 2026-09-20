@@ -89,8 +89,8 @@ export default async function ContentPage({ params }: Params) {
   const [typeRow] = await db
     .select({ typeSlug: contentTypes.slug, authorName: users.name })
     .from(contentTypes)
-    .leftJoin(users, eq(users.id, record.content.authorId))
-    .where(eq(contentTypes.id, record.content.typeId))
+    .leftJoin(users, eq(users.id, record.content.authorId ?? ''))
+    .where(eq(contentTypes.id, record.content.typeId ?? ''))
     .limit(1);
 
   if (typeRow?.typeSlug === 'post') {
