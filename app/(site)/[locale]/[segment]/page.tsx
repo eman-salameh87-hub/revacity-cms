@@ -9,6 +9,11 @@ import { buildMetadata } from '@/lib/seo/metadata';
 import { getSettings } from '@/lib/db/queries';
 import { locales, type Locale } from '@/lib/env';
 import { TypeArchive, archiveMetadata } from './type-archive';
+import { db } from '@/lib/db';
+import { contentTypes, users } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
+import { JsonLd } from '@/components/site/json-ld';
+import { articleJsonLd, absoluteUrl } from '@/lib/seo/json-ld';
 
 interface Params {
   params: Promise<{ locale: string; segment: string }>;
@@ -67,8 +72,42 @@ export default async function ContentPage({ params }: Params) {
   // No page by that slug — it may be a content type's index instead.
   if (!loaded) return <TypeArchive locale={locale} prefix={segment} />;
 
-  const { i18n } = loaded.record;
+  const { record } = loaded;
+  const { i18n } = record;
   const blocks = asContentBlocks(i18n?.body);
+
+  /**
+   * BlogPosting structured data for `post` entries.
+   *
+   * This route (not the nested [segment]/[slug] route) is what actually
+   * serves a post at its real URL — /en/<slug>, one segment, no /blog/
+   * prefix — because getContentBySlug resolves by slug alone, independent of
+   * the type's routePrefix. Scoped to the built-in `post` type the same way
+   * generateMetadata below scopes its `og:type: article`.
+   */
+  let articleSchema: Record<string, unknown> | null = null;
+  const [typeRow] = await db
+    .select({ typeSlug: contentTypes.slug, authorName: users.name })
+    .from(contentTypes)
+    .leftJoin(users, eq(users.id, record.content.authorId))
+    .where(eq(contentTypes.id, record.content.typeId))
+    .limit(1);
+
+  if (typeRow?.typeSlug === 'post') {
+    const settings = await getSettings();
+    articleSchema = articleJsonLd({
+      url: absoluteUrl(`/${locale}/${segment}`),
+      headline: i18n?.metaTitle || i18n?.title || segment,
+      description: i18n?.metaDescription || i18n?.excerpt,
+      image: i18n?.ogImage ?? record.content.featuredImage ?? settings?.logo,
+      datePublished: record.content.publishedAt,
+      dateModified: record.content.updatedAt,
+      authorName: typeRow.authorName,
+      publisherName: settings?.siteName ?? 'CMS',
+      publisherLogo: settings?.logo,
+      locale: loaded.locale,
+    });
+  }
 
   /**
    * A vendored, full-page embed (see HERO_CUSTOM_COMPONENTS) IS the page —
@@ -80,11 +119,17 @@ export default async function ContentPage({ params }: Params) {
    * block already is one.
    */
   if (isHeroBlock(blocks[0] ?? { type: '' })) {
-    return <ContentRenderer blocks={blocks} locale={loaded.locale} pageSlug={segment} />;
+    return (
+      <>
+        {articleSchema && <JsonLd data={articleSchema} />}
+        <ContentRenderer blocks={blocks} locale={loaded.locale} pageSlug={segment} />
+      </>
+    );
   }
 
   return (
     <article className="mx-auto max-w-4xl px-4 py-16">
+      {articleSchema && <JsonLd data={articleSchema} />}
       <header className="mb-8">
         <h1 className="text-3xl font-bold text-site-ink">{i18n?.title ?? segment}</h1>
         {i18n?.excerpt && <p className="mt-2 text-lg text-site-ink-muted">{i18n.excerpt}</p>}
