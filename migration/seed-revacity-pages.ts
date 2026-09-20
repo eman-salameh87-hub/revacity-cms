@@ -83,7 +83,11 @@ const PAGES: PageSpec[] = [
   {
     slug: "home",
     title: "Home",
-    metaTitle: "Revacity | Human-First AI Marketing & Revenue Engineering",
+    // No brand in metaTitle: app/(site)/[locale]/layout.tsx's `title.template`
+    // already appends " · <siteName>" to every page, so baking "Revacity"
+    // in here too duplicated it (and, worse, in a different spelling from
+    // other pages' "REVacity" — see the same fix on every metaTitle below).
+    metaTitle: "Human-First AI Marketing & Revenue Engineering",
     metaDescription:
       "Revacity is a Stateless Outcome Engineering Practice. We sign Revenue Warrants, not contracts — and get paid when you collect money.",
     blocks: [
@@ -135,7 +139,7 @@ const PAGES: PageSpec[] = [
   {
     slug: "about",
     title: "About",
-    metaTitle: "REVacity | About",
+    metaTitle: "About",
     metaDescription:
       "Eighteen years in the trenches of retail, e-commerce, FMCG and hospitality — built into a human-first AI marketing and growth engineering practice.",
     blocks: [
@@ -223,7 +227,7 @@ const PAGES: PageSpec[] = [
   {
     slug: "services",
     title: "Services",
-    metaTitle: "Services | Revacity",
+    metaTitle: "Services",
     metaDescription:
       "Two services, one philosophy: Revenue Engineering as a Service (REaaS) and Growth Engineering as a Service (GEaaS).",
     blocks: [
@@ -260,7 +264,7 @@ const PAGES: PageSpec[] = [
   {
     slug: "the-agent",
     title: "The Agent",
-    metaTitle: "The Agent | Revacity",
+    metaTitle: "The Agent",
     metaDescription:
       "Select your pain or wished gain. Talk to the Revacity agent and hear back within 48–72 hours.",
     blocks: [
@@ -284,7 +288,7 @@ const PAGES: PageSpec[] = [
   {
     slug: "compare",
     title: "Compare",
-    metaTitle: "Compare | Revacity",
+    metaTitle: "Compare",
     metaDescription:
       "Comparing how we do things is easier than explaining it. Choose the Warrant, the Challenge, or bring your own agency.",
     blocks: [
@@ -344,7 +348,7 @@ const PAGES: PageSpec[] = [
   {
     slug: "glossary",
     title: "Glossary",
-    metaTitle: "Glossary | Revacity",
+    metaTitle: "Glossary",
     metaDescription:
       "Concepts, frameworks and terms from the AI-marketing frontier, defined in plain language.",
     blocks: [
@@ -376,7 +380,7 @@ const PAGES: PageSpec[] = [
   {
     slug: "our-architecture",
     title: "Our Architecture",
-    metaTitle: "Our Architecture | Revacity",
+    metaTitle: "Our Architecture",
     metaDescription:
       "Neuro-symbolic, human-first, zero-legacy — the architecture behind every warranted engagement.",
     blocks: [
@@ -405,7 +409,7 @@ const PAGES: PageSpec[] = [
   {
     slug: "before-judging-us",
     title: "Before Judging Us",
-    metaTitle: "Before Judging Us | Revacity",
+    metaTitle: "Before Judging Us",
     metaDescription:
       "Our bizarre facts, our market read, and why we’d rather be honest than impressive.",
     blocks: [
@@ -435,7 +439,7 @@ const PAGES: PageSpec[] = [
   {
     slug: "100k-challenge",
     title: "The $100K Challenge",
-    metaTitle: "The $100K Challenge | Revacity",
+    metaTitle: "The $100K Challenge",
     metaDescription:
       "Get this in cash if you prove it. We are the unfair choice for your competitors.",
     blocks: [
@@ -468,7 +472,7 @@ const PAGES: PageSpec[] = [
   {
     slug: "start-a-warrant",
     title: "Start a Warrant",
-    metaTitle: "Start a Warrant | Revacity",
+    metaTitle: "Start a Warrant",
     metaDescription:
       "We don’t sign contracts. We sign Revenue Warrants — a specific number, a specific timeline, no pay if we don’t deliver.",
     blocks: [
@@ -508,7 +512,7 @@ const PAGES: PageSpec[] = [
   {
     slug: "start-audit",
     title: "Start Audit",
-    metaTitle: "Start Audit | Revacity",
+    metaTitle: "Start Audit",
     metaDescription:
       "We don’t audit to impress. We audit to expose. Book the diagnostic.",
     blocks: [
@@ -545,7 +549,7 @@ const PAGES: PageSpec[] = [
   {
     slug: "blog",
     title: "Intelligence Dispatches",
-    metaTitle: "REVacity | Intelligence Dispatches — Blog",
+    metaTitle: "Intelligence Dispatches — Blog",
     metaDescription:
       "REVacity's intelligence blog: contrarian takes on AI shifts, human-machine dynamics, and the versioning world. AEO, GEO, and SEO engineered.",
     blocks: [

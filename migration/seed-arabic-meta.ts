@@ -40,83 +40,87 @@ const ARABIC_META: ArabicMeta[] = [
   {
     slug: "home",
     title: "الرئيسية",
-    metaTitle: "Revacity | تسويق بالذكاء الاصطناعي يركّز على الإنسان وهندسة الإيرادات",
+    // No brand here: the root layout's title.template already appends
+    // " · Revacity" to every page (see the metaTitle fix in
+    // seed-revacity-pages.ts and the new fix-branded-meta-titles.ts) —
+    // baking it into metaTitle too duplicated it in the <title> tag.
+    metaTitle: "تسويق بالذكاء الاصطناعي يركّز على الإنسان وهندسة الإيرادات",
     metaDescription:
       "Revacity ممارسة هندسة نتائج بلا حالة (Stateless Outcome Engineering). نوقّع ضمانات إيرادات لا عقودًا، ولا نتقاضى أجرنا إلا حين تُحصّل أموالك فعليًا.",
   },
   {
     slug: "about",
     title: "من نحن",
-    metaTitle: "Revacity | من نحن",
+    metaTitle: "من نحن",
     metaDescription:
       "ثمانية عشر عامًا من الخبرة الميدانية في التجزئة والتجارة الإلكترونية والسلع الاستهلاكية سريعة الدوران والضيافة، تحوّلت إلى ممارسة تسويق ونمو بمحورية إنسانية تعتمد على الذكاء الاصطناعي.",
   },
   {
     slug: "services",
     title: "الخدمات",
-    metaTitle: "الخدمات | Revacity",
+    metaTitle: "الخدمات",
     metaDescription:
       "خدمتان بفلسفة واحدة: هندسة الإيرادات كخدمة (REaaS) وهندسة النمو كخدمة (GEaaS).",
   },
   {
     slug: "the-agent",
     title: "الوكيل",
-    metaTitle: "الوكيل | Revacity",
+    metaTitle: "الوكيل",
     metaDescription:
       "اختر مشكلتك أو الهدف الذي تطمح إليه، وتحدّث مع وكيل Revacity لتصلك الإجابة خلال 48 إلى 72 ساعة.",
   },
   {
     slug: "compare",
     title: "قارن",
-    metaTitle: "قارن | Revacity",
+    metaTitle: "قارن",
     metaDescription:
       "مقارنة أسلوب عملنا أسهل من شرحه. اختر الضمان (Warrant)، أو التحدي، أو أحضر وكالتك الحالية.",
   },
   {
     slug: "glossary",
     title: "المسرد",
-    metaTitle: "المسرد | Revacity",
+    metaTitle: "المسرد",
     metaDescription:
       "مفاهيم وأطر عمل ومصطلحات من عالم التسويق بالذكاء الاصطناعي، مشروحة بلغة مبسطة.",
   },
   {
     slug: "our-architecture",
     title: "بنيتنا",
-    metaTitle: "بنيتنا | Revacity",
+    metaTitle: "بنيتنا",
     metaDescription:
       "بنية عصبية-رمزية (Neuro-symbolic)، بمحورية إنسانية، وبلا إرث تقني قديم، هي الأساس وراء كل تعاقد مضمون.",
   },
   {
     slug: "before-judging-us",
     title: "قبل أن تحكم علينا",
-    metaTitle: "قبل أن تحكم علينا | Revacity",
+    metaTitle: "قبل أن تحكم علينا",
     metaDescription:
       "حقائقنا الغريبة، وقراءتنا للسوق، ولماذا نفضّل الصدق على الانبهار.",
   },
   {
     slug: "100k-challenge",
     title: "تحدي المئة ألف دولار",
-    metaTitle: "تحدي المئة ألف دولار | Revacity",
+    metaTitle: "تحدي المئة ألف دولار",
     metaDescription:
       "احصل على هذا المبلغ نقدًا إن أثبتّ ذلك. نحن الخيار غير العادل بالنسبة لمنافسيك.",
   },
   {
     slug: "start-a-warrant",
     title: "ابدأ ضمانًا",
-    metaTitle: "ابدأ ضمانًا | Revacity",
+    metaTitle: "ابدأ ضمانًا",
     metaDescription:
       "نحن لا نوقّع عقودًا، بل نوقّع ضمانات إيرادات (Revenue Warrants): رقم محدد، وجدول زمني محدد، ولا أجر إن لم ننجز.",
   },
   {
     slug: "start-audit",
     title: "ابدأ تدقيقًا",
-    metaTitle: "ابدأ تدقيقًا | Revacity",
+    metaTitle: "ابدأ تدقيقًا",
     metaDescription: "لا نُجري التدقيق لإبهارك، بل لكشف الحقيقة. احجز التشخيص الآن.",
   },
   {
     slug: "blog",
     title: "برقيات الذكاء",
-    metaTitle: "Revacity | برقيات الذكاء — المدونة",
+    metaTitle: "برقيات الذكاء — المدونة",
     metaDescription:
       "مدونة Revacity: آراء مخالفة للسائد حول تحولات الذكاء الاصطناعي، وديناميكيات الإنسان والآلة، وعالم التحديثات المتسارعة. مُهندسة لتحسين الظهور في نتائج الذكاء الاصطناعي (AEO) والبحث الجغرافي (GEO) ومحركات البحث التقليدية (SEO).",
   },
