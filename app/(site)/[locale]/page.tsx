@@ -1,4 +1,5 @@
 // /app/(site)/[locale]/page.tsx
+import type { Metadata } from 'next';
 import { getContentBySlug, getSettings } from '@/lib/db/queries';
 import { HeroSection } from '@/components/site/hero-section';
 import { ContentRenderer } from '@/components/site/content-renderer';
@@ -6,16 +7,18 @@ import { notFound } from 'next/navigation';
 import { locales, type Locale } from '@/lib/env';
 import { asContentBlocks } from '@/lib/blocks/content-schema';
 import { isHeroBlock } from '@/lib/blocks/layout';
+import { buildMetadata } from '@/lib/seo/metadata';
 
-export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = await params;
-
-  // Validate rather than cast. `locale as 'ar' | 'en'` silently passes any
-  // segment through to a pgEnum comparison, which Postgres rejects with
-  // 22P02 invalid_text_representation — a 500, not a 404.
-  if (!locales.includes(locale as Locale)) notFound();
-  const typedLocale = locale as Locale;
-
+/**
+ * The 'home' content row, falling back to the other locale's when this one
+ * has no translation yet.
+ *
+ * Shared by generateMetadata and the page body so the two can't disagree —
+ * before this fix, the page rendered the OTHER locale's content on a
+ * missing translation (see the comment below) while generateMetadata simply
+ * didn't exist, so there was nothing to keep in sync in the first place.
+ */
+async function loadHomeContent(typedLocale: Locale) {
   let homeContent = await getContentBySlug('home', typedLocale);
 
   /**
@@ -33,6 +36,55 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       if (fallback?.i18n) homeContent = fallback;
     }
   }
+
+  return homeContent;
+}
+
+/**
+ * Every other page on this site gets its <title>/description from its own
+ * metaTitle/metaDescription via buildMetadata() — this route never did, so
+ * the homepage fell all the way through to the root layout's bare default
+ * (`siteName` alone, "Revacity", no descriptive text) instead of the actual
+ * copy already sitting in the 'home' page's own fields.
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  if (!locales.includes(locale as Locale)) return {};
+  const typedLocale = locale as Locale;
+
+  const [homeContent, settings] = await Promise.all([
+    loadHomeContent(typedLocale),
+    getSettings(),
+  ]);
+
+  return buildMetadata({
+    locale: typedLocale,
+    path: '',
+    title: homeContent?.i18n?.metaTitle || homeContent?.i18n?.title || settings?.siteName || 'Revacity',
+    description: homeContent?.i18n?.metaDescription || homeContent?.i18n?.excerpt || settings?.siteDescription,
+    image: homeContent?.i18n?.ogImage ?? homeContent?.content?.featuredImage ?? settings?.logo,
+    // The site's own entry point, not an editorial piece — unlike the
+    // 'article' type every content PAGE uses (see [segment]/page.tsx).
+    type: 'website',
+    noIndex: homeContent?.i18n?.noIndex ?? false,
+    siteName: settings?.siteName,
+  });
+}
+
+export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+
+  // Validate rather than cast. `locale as 'ar' | 'en'` silently passes any
+  // segment through to a pgEnum comparison, which Postgres rejects with
+  // 22P02 invalid_text_representation — a 500, not a 404.
+  if (!locales.includes(locale as Locale)) notFound();
+  const typedLocale = locale as Locale;
+
+  const homeContent = await loadHomeContent(typedLocale);
 
   // The site's own name/description — from Settings, filled in at setup —
   // is what a visitor should see if truly nothing else is available, not a
