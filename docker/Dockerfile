@@ -56,6 +56,17 @@ RUN npx --yes esbuild scripts/migrate-runtime.ts       --bundle --platform=node 
 # leave in the image and re-run.
 RUN npx --yes esbuild migration/seed-revacity-pages.ts       --bundle --platform=node --target=node24 --format=cjs       --outfile=seed.cjs
 
+# Same idea, for the two one-time data-fix scripts written during the bug-fix
+# pass: Arabic title/meta seed and the brand-name title cleanup. Bundled so
+# they can be run from the Console against the private-network database
+# without shipping devDependencies or the full source tree. Not run
+# automatically -- invoke manually from the Console (`node seed-arabic-meta.cjs`,
+# `node fix-branded-meta-titles.cjs`) once. Idempotent: safe to leave in the
+# image and re-run.
+RUN npx --yes esbuild migration/seed-arabic-meta.ts       --bundle --platform=node --target=node24 --format=cjs       --outfile=seed-arabic-meta.cjs
+
+RUN npx --yes esbuild migration/fix-branded-meta-titles.ts       --bundle --platform=node --target=node24 --format=cjs       --outfile=fix-branded-meta-titles.cjs
+
 FROM node:24-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
@@ -72,6 +83,8 @@ COPY --from=builder /app/lib/db/migrations ./lib/db/migrations
 # Read by migrate.cjs, which resolves ./lib/db/migrations relative to WORKDIR.
 COPY --from=builder /app/migrate.cjs ./migrate.cjs
 COPY --from=builder /app/seed.cjs ./seed.cjs
+COPY --from=builder /app/seed-arabic-meta.cjs ./seed-arabic-meta.cjs
+COPY --from=builder /app/fix-branded-meta-titles.cjs ./fix-branded-meta-titles.cjs
 
 RUN mkdir -p public/uploads && chown -R nextjs:nodejs public/uploads
 
