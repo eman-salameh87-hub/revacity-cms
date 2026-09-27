@@ -30,7 +30,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         url: data.url,
         location: data.location,
         parentId: data.parentId ?? null,
-        order: data.order,
+        sortOrder: data.order,
         isActive: data.isActive,
         openInNew: data.openInNew,
       })

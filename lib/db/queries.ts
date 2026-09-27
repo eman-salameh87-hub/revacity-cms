@@ -91,7 +91,7 @@ export async function getNavigation(
       url: navigation.url,
       openInNew: navigation.openInNew,
       parentId: navigation.parentId,
-      order: navigation.order,
+      order: navigation.sortOrder,
       fallbackLabel: navigation.label,
       localizedLabel: navigationI18n.label,
     })
@@ -101,7 +101,7 @@ export async function getNavigation(
       and(eq(navigationI18n.navigationId, navigation.id), eq(navigationI18n.locale, locale))
     )
     .where(and(eq(navigation.location, location), eq(navigation.isActive, true)))
-    .orderBy(asc(navigation.order));
+    .orderBy(asc(navigation.sortOrder));
 
   return rows.map((r) => ({
     id: r.id,

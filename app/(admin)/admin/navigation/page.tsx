@@ -9,7 +9,7 @@ import { getAdminLocale } from '@/lib/admin-i18n/server';
 
 export default async function NavigationPage() {
   const t = createTranslator(await getAdminLocale());
-  const items = await db.select().from(navigation).orderBy(asc(navigation.order));
+  const items = await db.select().from(navigation).orderBy(asc(navigation.sortOrder));
   const labels = await db.select().from(navigationI18n);
 
   // Both locales flattened onto one row so the editor shows them side by side.
@@ -21,7 +21,7 @@ export default async function NavigationPage() {
     url: n.url,
     location: (n.location ?? 'header') as NavLocation,
     parentId: n.parentId,
-    order: n.order ?? 0,
+    order: n.sortOrder ?? 0,
     isActive: n.isActive ?? true,
     openInNew: n.openInNew ?? false,
   }));

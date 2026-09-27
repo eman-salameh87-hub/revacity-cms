@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Search, User, Heart } from 'lucide-react';
+import { Menu, X, User, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ThemeToggle } from './theme-toggle';
 
@@ -29,6 +29,19 @@ interface NavbarProps {
   showThemeToggle?: boolean;
 }
 
+/**
+ * The two branded CTA pills from revacity-pages' own header ("Start a
+ * Warrant" / "$100k Reward") — see the .nav-cta rules in app/globals.css for
+ * why these are fixed colours rather than theme slots. Slugs match the
+ * vendored legacy folders (public/legacy/revacity-start-a-warrant,
+ * public/legacy/revacity-100k-challenge); update these if the matching CMS
+ * pages end up published under different slugs.
+ */
+const HEADER_CTAS = [
+  { slug: 'start-a-warrant', label: { en: 'Start a Warrant', ar: 'ابدأ مذكرة' }, cls: 'nav-cta-warrant' },
+  { slug: '100k-challenge', label: { en: '$100k Reward', ar: 'مكافأة 100 ألف$' }, cls: 'nav-cta-reward' },
+] as const;
+
 export function Navbar({
   navigation,
   logo,
@@ -40,19 +53,13 @@ export function Navbar({
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
 
-  const otherLocale = locale === 'ar' ? 'en' : 'ar';
-
-  // Replace only the leading locale segment. A blind `.replace('/ar', …)`
-  // would corrupt a path like /ar/library/archive.
-  const swappedPath = pathname.replace(new RegExp(`^/${locale}(?=/|$)`), `/${otherLocale}`);
-
   // Nav URLs stored in the DB are locale-agnostic ("/about"); prefix them so
   // links do not escape the current locale.
   const localized = (url: string) =>
     /^https?:\/\//i.test(url) ? url : `/${locale}${url.startsWith('/') ? url : `/${url}`}`;
 
   return (
-    <nav id="site-navbar" className="sticky top-0 z-50 border-b border-site-line bg-site-surface/80 backdrop-blur-md">
+    <nav id="site-navbar" className="sticky top-0 z-50 border-b border-site-line bg-site-surface">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-4">
           <Link
@@ -98,19 +105,26 @@ export function Navbar({
             })}
           </div>
 
+          {/* The two branded CTAs, desktop only — the reference header hides
+              these below its 1200px breakpoint too and relies on the mobile
+              slide-menu's own copies instead (below). */}
+          <div className="hidden lg:flex items-center gap-3 shrink-0">
+            {HEADER_CTAS.map(({ slug, label, cls }) => (
+              <Link
+                key={slug}
+                href={`/${locale}/${slug}`}
+                data-test-id={`navbar-cta-${slug}`}
+                className={cn('nav-cta', cls)}
+              >
+                <span>{label[locale]}</span>
+              </Link>
+            ))}
+          </div>
+
           {/* Tighter on phones: this row now holds six controls, and at 390px
               the old gap-2 pushed the menu button off the edge — a horizontal
               scrollbar on every page. Unchanged from sm upwards. */}
           <div className="flex items-center gap-0.5 sm:gap-2">
-            <Link
-              href={`/${locale}/search`}
-              aria-label={locale === 'ar' ? 'بحث' : 'Search'}
-              data-test-id="navbar-search"
-              className="rounded-full p-1.5 hover:bg-site-surface-raised sm:p-2"
-            >
-              <Search size={20} aria-hidden="true" />
-            </Link>
-
             {/* Only when there is a shop: an account here exists to show order
                 history, so it is meaningless on a content-only site. */}
             {commerceOn && (
@@ -136,16 +150,6 @@ export function Navbar({
             )}
 
             {showThemeToggle && <ThemeToggle locale={locale} />}
-
-            <Link
-              href={swappedPath}
-              hrefLang={otherLocale}
-              aria-label={locale === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'}
-              data-test-id="navbar-locale-switch"
-              className="rounded-full bg-site-surface-raised px-2 py-1 text-sm font-medium hover:bg-site-line sm:px-3"
-            >
-              {locale === 'ar' ? 'EN' : 'عربي'}
-            </Link>
 
             <button
               type="button"
@@ -176,6 +180,22 @@ export function Navbar({
                 {item.label}
               </Link>
             ))}
+
+            {/* Same two CTAs as the desktop bar, stacked and full-width —
+                the reference site's mobile-menu-cta. */}
+            <div className="mt-2 flex flex-col gap-3 border-t border-site-line pt-3">
+              {HEADER_CTAS.map(({ slug, label, cls }) => (
+                <Link
+                  key={slug}
+                  href={`/${locale}/${slug}`}
+                  onClick={() => setMobileOpen(false)}
+                  data-test-id={`navbar-mobile-cta-${slug}`}
+                  className={cn('nav-cta nav-cta-mobile', cls)}
+                >
+                  <span>{label[locale]}</span>
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       )}

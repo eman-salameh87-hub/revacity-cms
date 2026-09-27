@@ -633,7 +633,7 @@ async function writeNavigation(bundle: ResourceBundle) {
            * item is a bare `/`, which becomes `/en` and `/ar` correctly.
            */
           url: item.path ? `/${item.path}` : '/',
-          order: index,
+          sortOrder: index,
           location,
           isActive: true,
         })

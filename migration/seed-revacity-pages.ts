@@ -1092,7 +1092,7 @@ async function writeNavigation() {
           // Stored WITHOUT the locale segment — components/site/navbar.tsx
           // prefixes `/${locale}` to any relative url itself.
           url: item.path ? `/${item.path}` : "/",
-          order: index,
+          sortOrder: index,
           location,
           isActive: true,
         })

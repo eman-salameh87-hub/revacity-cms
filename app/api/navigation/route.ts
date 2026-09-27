@@ -22,7 +22,7 @@ export async function POST(request: Request) {
         url: data.url,
         location: data.location,
         parentId: data.parentId ?? null,
-        order: data.order,
+        sortOrder: data.order,
         isActive: data.isActive,
         openInNew: data.openInNew,
       })
@@ -67,7 +67,7 @@ export async function PATCH(request: Request) {
     // Index in the submitted array IS the order — the client sends the whole
     // list, so there is no chance of two items claiming the same position.
     for (const [index, id] of ids.entries()) {
-      await db.update(navigation).set({ order: index }).where(eq(navigation.id, id));
+      await db.update(navigation).set({ sortOrder: index }).where(eq(navigation.id, id));
     }
 
     revalidatePath('/', 'layout');

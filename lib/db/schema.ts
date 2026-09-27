@@ -283,7 +283,7 @@ export const navigation = pgTable('navigation', {
   id: uuid('id').primaryKey().defaultRandom(),
   label: varchar('label', { length: 255 }).notNull(),
   url: varchar('url', { length: 500 }).notNull(),
-  order: integer('order').default(0),
+  sortOrder: integer('sort_order').default(0),
   parentId: uuid('parent_id').references((): AnyPgColumn => navigation.id),
   location: navLocationEnum('location').default('header'),
   isActive: boolean('is_active').default(true),
